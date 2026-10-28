@@ -1,0 +1,483 @@
+PROYECTO: PLATAFORMA WEB DE TORNEO RUSHER — FREE FIRE
+
+1. Rol y objetivo
+
+Actúa como un Senior Frontend Developer especializado en interfaces de esports, dirección de arte digital, UX/UI y diseño de plataformas competitivas.
+
+Quiero desarrollar una página web pública para un torneo de Rush/Rusher de Free Fire, inspirada en las imágenes de referencia proporcionadas:
+
+- Logo geométrico dorado de Qualifiers.
+- Emblema circular de Rusheo con personaje encapuchado negro y amarillo.
+- Cronograma competitivo con rondas, fechas, horarios y grupos.
+
+No quiero una simple landing page ni un afiche convertido en HTML. Quiero una experiencia web de torneo que parezca un producto real de esports, con navegación clara, información competitiva bien organizada y una identidad visual consistente.
+
+Importante: desarrolla únicamente la parte pública del evento. No construyas panel de administración, dashboard administrativo, CMS ni herramientas internas de gestión. La integración administrativa, base de datos y gestión de resultados serán responsabilidad del propietario del proyecto.
+
+Antes de modificar archivos, analiza la estructura y las tecnologías existentes. Reutiliza el proyecto actual cuando sea posible y evita reescribir componentes que ya funcionen.
+
+2. Dirección de arte
+
+Identidad visual
+
+Construye un sistema visual basado en tres elementos:
+
+1. La geometría angular del logo Qualifiers.
+2. La identidad negra y dorada de Rusheo.
+3. La presentación ordenada y competitiva de un calendario de clasificación.
+
+Paleta sugerida:
+
+- Negro principal: #080808.
+- Negro de superficies: #111111.
+- Gris oscuro: #1B1B1B.
+- Dorado principal: #FFC21A.
+- Dorado secundario: #D99A00.
+- Blanco: #F5F5F5.
+- Gris de texto secundario: #A6A6A6.
+- Verde discreto para estados confirmados, cuando corresponda.
+
+Utiliza el dorado para destacar información, no para colorear absolutamente todos los elementos.
+
+Estilo gráfico
+
+- Estética de esports competitivos, agresiva y profesional.
+- Tipografía condensada y contundente para encabezados.
+- Tipografía geométrica y legible para interfaces, horarios y estadísticas.
+- Bordes angulares inspirados en el emblema de Qualifiers.
+- Líneas divisorias finas y estructuras geométricas.
+- Fondos oscuros con textura sutil y detalles metálicos controlados.
+- Sombras y efectos de iluminación solo donde aporten profundidad.
+- Microanimaciones breves y elegantes.
+
+Evita degradados excesivos, brillos por todas partes, partículas constantes, elementos flotantes innecesarios, iconografía genérica y diseños que parezcan generados automáticamente por IA.
+
+No inventes un logo nuevo que sustituya al logo oficial. Si los archivos de referencia están disponibles en el proyecto, reutilízalos. Si no lo están, utiliza recursos provisionales claramente identificados y deja preparado el espacio para reemplazarlos.
+
+Respeta las proporciones y la identidad de los logos originales.
+
+3. Arquitectura de la página
+
+Crea una página principal con las siguientes secciones.
+
+A. Barra de navegación
+
+Diseña una navegación oscura, compacta y profesional.
+
+Elementos:
+
+- Logo del torneo.
+- Inicio.
+- Formato.
+- Calendario.
+- Clasificación.
+- Equipos.
+- Premios.
+- Reglas.
+- Botón destacado: Ver transmisión, cuando exista un enlace configurado.
+
+En escritorio, utiliza una barra horizontal. En móvil, implementa un menú compacto que funcione correctamente con teclado y pantalla táctil.
+
+La navegación debe desplazarse a las secciones correspondientes y mostrar claramente la sección activa cuando sea apropiado.
+
+B. Hero principal
+
+Debe ser el elemento visual más impactante de la página.
+
+Diseño:
+
+- Fondo negro con composición gráfica inspirada en esports.
+- Personaje o mascota del torneo como elemento visual secundario o central.
+- Logo oficial integrado en la composición.
+- Nombre del evento como encabezado principal.
+- Edición del torneo y temporada, cuando estén configuradas.
+- Texto breve que explique la competición.
+- Fecha de inicio y estado actual del evento.
+- Cuenta regresiva únicamente si existe una fecha válida y futura.
+- Botón principal: VER CALENDARIO.
+- Botón secundario: CONOCER EL FORMATO.
+
+Añade un pequeño indicador de estado:
+
+- Inscripciones abiertas.
+- Inscripciones cerradas.
+- En clasificación.
+- En semifinales.
+- Final en curso.
+- Finalizado.
+
+El estado debe depender de los datos del evento, no de texto decorativo.
+
+No inventes premios, patrocinadores, fechas, participantes ni cifras de audiencia.
+
+C. Resumen competitivo
+
+Debajo del hero, incorpora una franja con cuatro indicadores configurables:
+
+- Equipos inscritos.
+- Equipos clasificados.
+- Próxima jornada.
+- Premio total.
+
+Si no existen datos reales, muestra estados vacíos elegantes o información de ejemplo claramente identificada como demostración.
+
+No presentes datos ficticios como resultados oficiales.
+
+D. Formato del torneo
+
+Crea una sección visual que explique cómo avanza la competición.
+
+Debe contemplar estructuras configurables como:
+
+- Fase clasificatoria.
+- Octavos de final.
+- Cuartos de final.
+- Semifinales.
+- Gran final.
+
+Representa las rondas mediante tarjetas conectadas o un cuadro competitivo visual.
+
+Cada ronda puede mostrar:
+
+- Nombre.
+- Cantidad de equipos.
+- Fecha.
+- Estado.
+- Criterio de clasificación.
+- Equipos que avanzan, si se dispone de los datos.
+
+No presupongas que todas las ediciones usan las mismas rondas o cantidades de equipos. Las etapas deben renderizarse a partir de los datos disponibles.
+
+En escritorio, prioriza un bracket horizontal legible. En móvil, permite consultar las rondas mediante tarjetas, acordeones o desplazamiento horizontal controlado.
+
+E. Calendario de partidas
+
+Esta es una de las secciones más importantes.
+
+Diseña un calendario inspirado en la tercera imagen, pero adaptado a una interfaz web real.
+
+Organización:
+
+- Agrupar las jornadas por fecha.
+- Separar claramente cada fase.
+- Mostrar el identificador del grupo o partida.
+- Mostrar hora de inicio y zona horaria configurada.
+- Indicar cantidad de salas cuando corresponda.
+- Mostrar el estado de la jornada.
+
+Cada tarjeta debe incluir:
+
+- Fecha.
+- Fase del torneo.
+- Identificador de grupo.
+- Hora.
+- Número de salas, si aplica.
+- Estado: programado, en curso, finalizado o pospuesto.
+- Enlace a resultados o transmisión cuando esté disponible.
+
+Incluye filtros por fase y fecha, así como un control para consultar próximas jornadas y jornadas anteriores.
+
+En móvil, las tarjetas deben ocupar el ancho disponible sin reducir el texto a tamaños ilegibles.
+
+No copies automáticamente las fechas de la imagen de referencia. Utiliza datos de ejemplo claramente marcados o deja los campos preparados para la programación oficial.
+
+F. Próxima partida
+
+Crea una tarjeta destacada para la siguiente jornada pendiente.
+
+Debe incluir:
+
+- Nombre de la fase.
+- Fecha y hora.
+- Grupo correspondiente.
+- Cuenta regresiva, si procede.
+- Botón para consultar la jornada.
+- Acceso a la transmisión si hay una URL disponible.
+
+Si el evento está en curso, muestra el estado correspondiente. Si ha finalizado, muestra la siguiente actividad o un mensaje de evento concluido.
+
+Evita mostrar una cuenta regresiva negativa o fechas sin configurar.
+
+G. Equipos participantes
+
+Diseña una cuadrícula de tarjetas competitivas.
+
+Cada equipo puede incluir:
+
+- Logo o avatar.
+- Nombre del equipo.
+- Etiqueta de grupo.
+- Estado de clasificación.
+- Posición, si existe una clasificación oficial.
+- Enlace a perfil o estadísticas, si se implementa esa funcionalidad.
+
+Permite filtrar por grupo y estado de clasificación.
+
+Las tarjetas deben ser visualmente atractivas, pero no tan grandes que dificulten consultar muchos participantes.
+
+Cuando no existan logos, utiliza avatares neutros y consistentes. No inventes identidades de equipos reales.
+
+H. Tabla de clasificación
+
+Crea una tabla competitiva con:
+
+- Posición.
+- Equipo.
+- Partidas jugadas.
+- Victorias o Booyahs.
+- Puntos de eliminación.
+- Puntos de posición.
+- Puntos totales.
+
+Estos campos deben ser configurables para ajustarse al reglamento oficial.
+
+Funciones:
+
+- Ordenar por columnas cuando sea coherente.
+- Resaltar puestos de clasificación directa.
+- Distinguir visualmente los equipos eliminados.
+- Mostrar la última actualización cuando exista.
+- Permitir cambiar entre grupos o fases cuando corresponda.
+
+En móvil, convierte la tabla en una presentación adaptable o permite desplazamiento horizontal con indicaciones claras.
+
+No calcules resultados oficiales usando reglas inventadas. Si se incluye una fórmula demostrativa, documéntala y mantenla separada de los datos oficiales.
+
+I. Premios
+
+Crea una sección que presente la bolsa de premios con una jerarquía visual clara.
+
+Puede incluir:
+
+- Premio del primer puesto.
+- Premio del segundo puesto.
+- Premio del tercer puesto.
+- Recompensas especiales.
+
+Usa composición negra y dorada, con el primer puesto como elemento protagonista.
+
+Los valores y recompensas deben provenir de los datos del evento. Si no están definidos, muestra un mensaje como “Premios por anunciar”.
+
+No inventes acuerdos comerciales ni patrocinadores.
+
+J. Reglas del torneo
+
+Diseña un bloque para consultar el reglamento.
+
+Organiza la información en categorías:
+
+- Requisitos de participación.
+- Formato competitivo.
+- Horarios y puntualidad.
+- Sistema de puntuación.
+- Descalificaciones.
+- Conducta y juego limpio.
+- Reporte de resultados.
+- Resolución de disputas.
+
+Utiliza acordeones accesibles para evitar una página excesivamente larga.
+
+Incluye un botón para consultar o descargar el reglamento cuando exista un documento oficial.
+
+No redactes reglas definitivas sin la información del organizador. Utiliza marcadores de contenido pendiente si es necesario.
+
+K. Transmisiones y contenido
+
+Añade una sección para seguir el torneo.
+
+Debe soportar:
+
+- Enlace a YouTube.
+- Enlace a otras plataformas configuradas.
+- Miniatura de la transmisión.
+- Estado en directo o próxima transmisión.
+- Acceso a resúmenes y resultados anteriores, cuando existan.
+
+No incrustes reproductores pesados si no hay una transmisión configurada. Prioriza enlaces externos y carga diferida para mantener el rendimiento.
+
+L. Preguntas frecuentes
+
+Incluye preguntas sobre:
+
+- Cómo participar.
+- Cuándo se juega.
+- Cómo consultar resultados.
+- Cómo funciona la clasificación.
+- Dónde consultar las reglas.
+- Cómo reportar incidencias.
+
+Las respuestas deben proceder de información oficial. Si falta contenido, deja la respuesta pendiente de configuración.
+
+M. Footer
+
+Incluye:
+
+- Logo del torneo.
+- Nombre de la organización.
+- Navegación secundaria.
+- Redes sociales configuradas.
+- Contacto oficial, si existe.
+- Reglamento.
+- Aviso de privacidad y términos cuando estén disponibles.
+- Nota de marca independiente.
+
+No inventes cuentas, direcciones de correo ni enlaces.
+
+4. Sistema de componentes
+
+Construye componentes reutilizables, evitando duplicar código.
+
+Como mínimo:
+
+- Navbar.
+- HeroSection.
+- EventStatus.
+- Countdown.
+- TournamentStats.
+- TournamentBracket.
+- MatchCalendar.
+- MatchCard.
+- NextMatch.
+- TeamCard.
+- TeamsGrid.
+- StandingsTable.
+- PrizeSection.
+- RulesAccordion.
+- StreamSection.
+- FAQSection.
+- Footer.
+
+Adapta los nombres a la arquitectura existente del proyecto.
+
+Los componentes deben recibir datos mediante propiedades o una capa de datos definida, en lugar de contener información del torneo dispersa por todo el código.
+
+5. Arquitectura de datos y futura integración
+
+La página será pública, pero debe quedar preparada para conectarse posteriormente a una API o fuente de datos controlada por el organizador.
+
+Centraliza los datos en una estructura coherente que permita representar:
+
+- Información del evento.
+- Fases y rondas.
+- Fechas y jornadas.
+- Partidas.
+- Equipos.
+- Clasificaciones.
+- Premios.
+- Reglas.
+- Transmisiones.
+- Enlaces oficiales.
+
+Define estados de carga, error y ausencia de datos.
+
+No implementes un panel administrativo ni un sistema de edición de estos datos.
+
+No expongas secretos, claves privadas ni credenciales. Si se utiliza una API, consume únicamente endpoints públicos o expresamente autorizados.
+
+No conectes una base de datos ni cambies la configuración del backend sin que se solicite.
+
+6. Tecnología y calidad del código
+
+Primero inspecciona el proyecto existente.
+
+Si ya utiliza HTML, CSS y JavaScript, conserva ese stack salvo que exista una razón técnica importante para cambiarlo.
+
+Si el proyecto ya utiliza React u otro framework, respeta la arquitectura existente.
+
+Requisitos:
+
+- Código modular y mantenible.
+- HTML semántico.
+- CSS organizado mediante variables de diseño.
+- Diseño responsive.
+- Accesibilidad de teclado.
+- Contraste suficiente.
+- Estados de foco visibles.
+- Imágenes optimizadas.
+- Carga diferida de recursos no críticos.
+- Enlaces funcionales.
+- Ausencia de errores en consola.
+- Buen rendimiento en móviles.
+- Metadatos SEO y Open Graph.
+- Favicon configurable.
+- URLs y navegación preparadas para producción.
+
+Evita dependencias innecesarias, bibliotecas pesadas solo por decoración y animaciones que reduzcan el rendimiento.
+
+Si el proyecto está alojado en una plataforma estática, la solución debe seguir siendo compatible con ese entorno.
+
+7. Diseño responsive
+
+Diseña primero para móvil y escala a escritorio.
+
+En móvil:
+
+- Hero compacto, pero visualmente potente.
+- Tipografía legible.
+- Botones fáciles de pulsar.
+- Calendario en tarjetas.
+- Clasificación adaptable.
+- Navegación sencilla.
+- Sin desbordamientos horizontales accidentales.
+
+En escritorio:
+
+- Hero con composición gráfica amplia.
+- Calendario en cuadrícula cuando el espacio lo permita.
+- Bracket con mayor amplitud.
+- Tablas completas.
+- Jerarquía visual clara y espacios generosos.
+
+No te limites a reducir la versión de escritorio. La experiencia móvil debe tener una distribución propia.
+
+8. Interacciones y microanimaciones
+
+Implementa únicamente interacciones que aporten utilidad:
+
+- Navegación por anclas.
+- Filtros del calendario.
+- Filtros de equipos.
+- Ordenación de clasificación.
+- Acordeones de reglas y preguntas frecuentes.
+- Cuenta regresiva basada en una fecha válida.
+- Indicadores de estado.
+- Transiciones discretas.
+- Estados de carga, error y vacío.
+
+Respeta la preferencia del usuario por movimiento reducido.
+
+No simules conexiones en directo, resultados actualizados ni sistemas de notificación si no existen realmente.
+
+9. Criterios de aceptación
+
+El resultado final debe cumplir lo siguiente:
+
+1. Parecer una plataforma de esports profesional y no un simple afiche.
+2. Mantener una identidad coherente en negro, dorado y blanco.
+3. Respetar los logos y recursos originales.
+4. Permitir consultar fácilmente el calendario y el formato.
+5. Mostrar equipos y clasificación de forma legible.
+6. Funcionar correctamente en móvil, tablet y escritorio.
+7. Separar presentación, componentes y datos.
+8. No inventar información oficial.
+9. No incluir administración ni funcionalidades internas.
+10. Estar preparado para recibir datos oficiales en el futuro.
+11. Mantener compatibilidad con la tecnología y el despliegue existentes.
+12. No romper funcionalidades actuales del proyecto.
+
+10. Forma de trabajo
+
+Trabaja en este orden:
+
+1. Inspecciona la estructura actual y los recursos disponibles.
+2. Identifica qué se puede reutilizar.
+3. Define la jerarquía visual y el sistema de diseño.
+4. Implementa la estructura principal.
+5. Desarrolla las secciones y componentes.
+6. Añade interacciones y estados.
+7. Ajusta la experiencia móvil.
+8. Revisa accesibilidad, rendimiento y SEO.
+9. Comprueba enlaces, errores de consola y desbordamientos.
+10. Entrega un resumen de los archivos modificados, las funcionalidades implementadas y los datos que el organizador debe configurar.
+
+Prioriza un resultado visual de alta calidad, una experiencia competitiva clara y una base de código que pueda evolucionar sin tener que reconstruir toda la página.
