@@ -31,11 +31,11 @@ const PYROCORE = (() => {
 
   async function fetchFromSupabase(scheduleQuery) {
     const [settings, schedule, groups, rows, sponsors] = await Promise.all([
-      sb.from("settings").select("*").eq("id", 1).maybeSingle().then(must),
-      (scheduleQuery || sb.from("schedule").select("*").order("position")).then(must),
-      sb.from("result_groups").select("*").order("position").then(must),
-      sb.from("result_rows").select("*").order("position").then(must),
-      sb.from("sponsors").select("*").order("position").then(must),
+      sb.from("at_settings").select("*").eq("id", 1).maybeSingle().then(must),
+      (scheduleQuery || sb.from("at_schedule").select("*").order("position")).then(must),
+      sb.from("at_result_groups").select("*").order("position").then(must),
+      sb.from("at_result_rows").select("*").order("position").then(must),
+      sb.from("at_sponsors").select("*").order("position").then(must),
     ]);
     const fmt = (d) => (d ? new Date(d).toLocaleString("es", { dateStyle: "medium", timeStyle: "short" }) : "");
     return {

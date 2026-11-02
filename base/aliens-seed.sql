@@ -18,13 +18,15 @@ create table if not exists at_settings (
 insert into at_settings(id) values(1) on conflict do nothing;
 
 create table if not exists at_staff_users (
-  id            uuid        primary key default gen_random_uuid(),
-  username      text        not null unique,
-  display_name  text,
-  password_hash text        not null,
-  role          text        not null default 'editor'
-                            check (role in ('editor','admin')),
-  created_at    timestamptz not null default now()
+  id               uuid        primary key default gen_random_uuid(),
+  username         text        not null unique,
+  display_name     text,
+  password_hash    text        not null,
+  role             text        not null default 'editor'
+                               check (role in ('editor','admin')),
+  failed_attempts  int         not null default 0,
+  locked_until     timestamptz,
+  created_at       timestamptz not null default now()
 );
 
 create table if not exists at_staff_sessions (
@@ -103,19 +105,47 @@ create policy "at_pub_sponsors"  on at_sponsors      for select using (true);
 
 -- ── Funciones con prefijo at_ ─────────────────────────────────
 
--- Login
+-- Login con rate limiting: 5 intentos → bloqueo 15 min, sesión 8 h
 create or replace function at_staff_login(p_username text, p_password text)
 returns json language plpgsql security definer as $$
 declare
-  v_user at_staff_users;
+  v_user  at_staff_users;
   v_token text;
+  v_next  int;
 begin
   select * into v_user from at_staff_users where username = lower(trim(p_username));
-  if not found or v_user.password_hash <> crypt(p_password, v_user.password_hash) then
+
+  if not found then
     raise exception 'Usuario o clave incorrectos';
   end if;
+
+  -- Verificar bloqueo activo
+  if v_user.locked_until is not null and v_user.locked_until > now() then
+    raise exception 'Cuenta bloqueada. Intenta en % min.',
+      ceil(extract(epoch from (v_user.locked_until - now())) / 60)::int;
+  end if;
+
+  -- Verificar clave
+  if v_user.password_hash <> crypt(p_password, v_user.password_hash) then
+    v_next := v_user.failed_attempts + 1;
+    update at_staff_users set
+      failed_attempts = v_next,
+      locked_until    = case when v_next >= 5 then now() + interval '15 minutes' else locked_until end
+    where id = v_user.id;
+    if v_next >= 5 then
+      raise exception 'Demasiados intentos. Cuenta bloqueada 15 minutos.';
+    else
+      raise exception 'Usuario o clave incorrectos (intento % de 5).', v_next;
+    end if;
+  end if;
+
+  -- Éxito: resetear contadores
+  update at_staff_users set failed_attempts = 0, locked_until = null where id = v_user.id;
+
   v_token := encode(gen_random_bytes(32), 'hex');
-  insert into at_staff_sessions(token, user_id) values(v_token, v_user.id);
+  insert into at_staff_sessions(token, user_id, expires_at)
+  values (v_token, v_user.id, now() + interval '8 hours');
+
   return json_build_object('token', v_token, 'user', json_build_object(
     'id', v_user.id, 'username', v_user.username,
     'display_name', v_user.display_name, 'role', v_user.role
@@ -170,7 +200,7 @@ begin
   where id = 1;
 
   -- schedule
-  delete from at_schedule;
+  delete from at_schedule where true;
   i := 0;
   for v_m in select * from jsonb_array_elements(coalesce(p_data->'schedule','[]')) loop
     insert into at_schedule(id, phase, group_name, date, time, rooms, status, visible, note, position)
@@ -235,7 +265,7 @@ begin
   );
 
   -- sponsors
-  delete from at_sponsors;
+  delete from at_sponsors where true;
   i := 0;
   for v_s in select * from jsonb_array_elements(coalesce(p_data->'sponsors','[]')) loop
     if coalesce(v_s->>'name','') <> '' or coalesce(v_s->>'logo_url','') <> '' then
@@ -275,6 +305,31 @@ begin
     'id', id, 'username', username, 'display_name', display_name,
     'role', role, 'created_at', created_at
   ) order by created_at) from at_staff_users);
+end; $$;
+
+create or replace function at_staff_update_user(
+  p_token text, p_id uuid, p_role text, p_password text default null
+) returns void language plpgsql security definer as $$
+declare v_me json;
+begin
+  v_me := at_staff_me(p_token);
+  if v_me->>'role' <> 'admin' then raise exception 'Solo admins pueden modificar usuarios'; end if;
+  if p_password is not null then
+    if length(p_password) < 6 then raise exception 'La clave debe tener al menos 6 caracteres'; end if;
+    update at_staff_users set role = p_role, password_hash = crypt(p_password, gen_salt('bf')) where id = p_id;
+  else
+    update at_staff_users set role = p_role where id = p_id;
+  end if;
+end; $$;
+
+create or replace function at_staff_delete_user(p_token text, p_id uuid)
+returns void language plpgsql security definer as $$
+declare v_me json;
+begin
+  v_me := at_staff_me(p_token);
+  if v_me->>'role' <> 'admin' then raise exception 'Solo admins pueden eliminar usuarios'; end if;
+  if (v_me->>'id')::uuid = p_id then raise exception 'No puedes eliminarte a ti mismo'; end if;
+  delete from at_staff_users where id = p_id;
 end; $$;
 
 create or replace function at_staff_change_password(p_token text, p_old text, p_new text)

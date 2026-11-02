@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login · Aliens Tournaments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080b;--bg-card:#0f1116;--bg-hi:#161921;
+  --border:#1e2229;--border-hi:#2a2f3a;
+  --teal:#00e5b0;--red:#f87171;--text:#e5eaf2;--muted:#6b7685;
+  --fb:'Inter',sans-serif;--fd:'Barlow Condensed',sans-serif;--rad:6px;
+}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100dvh;font-size:14px;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;gap:12px;padding:0 20px;height:54px;
+  background:rgba(7,8,11,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.topbar-logo img{width:30px;height:30px;object-fit:contain}
+.topbar-title{font:800 1.1rem/1 var(--fd);letter-spacing:.06em;color:var(--text)}
+.topbar-title em{color:var(--teal);font-style:normal}
+.wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-box{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:10px;padding:40px 36px;width:100%;max-width:400px;
+  box-shadow:0 24px 64px rgba(0,0,0,.5);
+}
+.login-box h2{font:800 2rem/1 var(--fd);letter-spacing:.05em;margin-bottom:4px}
+.login-box p{color:var(--muted);font-size:.82rem;margin-bottom:28px}
+#error-msg{
+  display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);
+  color:var(--red);border-radius:var(--rad);padding:10px 14px;
+  font-size:.82rem;margin-bottom:16px;
+}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;font-weight:600}
+.login-field input{
+  width:100%;border:1px solid var(--border-hi);border-radius:var(--rad);
+  background:var(--bg-hi);color:var(--text);padding:10px 12px;
+  font:500 .9rem var(--fb);transition:border-color .15s;
+}
+.login-field input:focus{outline:none;border-color:var(--teal)}
+#login-btn{
+  width:100%;margin-top:8px;padding:12px;border:0;border-radius:var(--rad);
+  background:var(--teal);color:#07080b;font:700 .88rem var(--fb);cursor:pointer;
+  transition:filter .15s,transform .15s;
+}
+#login-btn:hover{filter:brightness(1.1)}
+#login-btn:active{transform:scale(.98)}
+#login-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar-logo" href="index.html">
+    <img src="logo.png" alt="Aliens" onerror="this.style.display='none'">
+    <span class="topbar-title">ALIENS<em>.</em>GG</span>
+  </a>
+</header>
+<div class="wrap">
+  <div class="login-box">
+    <h2>Panel Admin</h2>
+    <p>Aliens Tournaments · Staff</p>
+    <div id="error-msg"></div>
+    <form id="login-form" autocomplete="on">
+      <div class="login-field">
+        <label for="un">Usuario</label>
+        <input id="un" name="username" type="text" autocomplete="username" placeholder="tu usuario" required>
+      </div>
+      <div class="login-field">
+        <label for="pw">Contraseña</label>
+        <input id="pw" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <button id="login-btn" type="submit">Iniciar sesión →</button>
+    </form>
+  </div>
+</div>
+
+<script src="base/supabase.min.js"></script>
+<script src="base/config.js"></script>
+<script src="base/common.js"></script>
+<script>
+(async () => {
+  const { sb, must } = PYROCORE;
+  const TOKEN_KEY = "prc_staff_token";
+  const errEl = document.getElementById("error-msg");
+
+  const showErr = (msg) => { errEl.textContent = msg; errEl.style.display = "block"; };
+
+  if (!sb) {
+    showErr("Falta configurar Supabase en base/config.js.");
+    document.getElementById("login-btn").disabled = true;
+    return;
+  }
+
+  // Si ya hay token válido, ir directo al admin
+  let saved;
+  try { saved = localStorage.getItem(TOKEN_KEY); } catch(_) {}
+  if (saved) {
+    try {
+      await sb.rpc("at_staff_me", { p_token: saved }).then(({ data, error }) => {
+        if (error) throw new Error(error.message);
+        return data;
+      });
+      location.replace("admin.html");
+      return;
+    } catch(_) {
+      try { localStorage.removeItem(TOKEN_KEY); } catch(_) {}
+    }
+  }
+
+  let cooldown = 0;
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (Date.now() < cooldown) return;
+    errEl.style.display = "none";
+    const btn = document.getElementById("login-btn");
+    btn.disabled = true;
+    try {
+      const { data, error } = await sb.rpc("at_staff_login", {
+        p_username: document.getElementById("un").value.trim(),
+        p_password: document.getElementById("pw").value,
+      });
+      if (error) throw new Error(error.message);
+      try { localStorage.setItem(TOKEN_KEY, data.token); } catch(_) {}
+      document.getElementById("pw").value = "";
+      location.replace("admin.html");
+    } catch(err) {
+      showErr(err.message);
+      cooldown = Date.now() + 3000;
+      let secs = 3;
+      const orig = btn.textContent;
+      const iv = setInterval(() => {
+        btn.textContent = `Espera ${secs--}s`;
+        if (secs < 0) { clearInterval(iv); btn.textContent = orig; btn.disabled = false; }
+      }, 1000);
+    }
+  });
+})();
+</script>
+</body>
+</html>

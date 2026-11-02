@@ -67,43 +67,16 @@
   try { token = localStorage.getItem(TOKEN_KEY); } catch (_) {}
   const rpc = async (fn, args = {}) => must(await sb.rpc(fn, { p_token: token, ...args }));
 
-  const showLogin = (msg) => {
-    $("#login-view").hidden = false;
-    $("#admin-view").hidden = true;
-    $("#savebar").hidden = true;
-    $("#logout").hidden = true;
-    $("#change-pw").hidden = true;
-    $("#who").textContent = "";
-    $("#pending-msg").hidden = !msg;
-    $("#pending-msg").textContent = msg || "";
+  const redirectToLogin = () => {
+    try { localStorage.removeItem(TOKEN_KEY); } catch(_) {}
+    location.replace("login.html");
   };
   const setToken = (t) => {
     token = t;
     try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch (_) {}
   };
 
-  if (!sb) {
-    showLogin("Falta configurar Supabase: agrega la URL y clave anon/publishable en assets/config.js.");
-    $("#login-btn").disabled = true;
-    return;
-  }
-
-  $("#login-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = $("#login-btn");
-    btn.disabled = true;
-    try {
-      const res = must(await sb.rpc("staff_login", { p_username: $("#un").value.trim(), p_password: $("#pw").value }));
-      setToken(res.token);
-      me = res.user;
-      $("#pw").value = "";
-      await boot();
-    } catch (err) {
-      toast(err.message, true);
-    } finally {
-      btn.disabled = false;
-    }
-  });
+  if (!sb) { redirectToLogin(); return; }
 
   $("#change-pw").addEventListener("click", async () => {
     const old = prompt("Clave actual:");
@@ -111,29 +84,27 @@
     const pw = prompt("Nueva clave (mínimo 6 caracteres):");
     if (!pw) return;
     if (pw !== prompt("Repite la nueva clave:")) return toast("Las claves no coinciden", true);
-    try { await rpc("staff_change_password", { p_old: old, p_new: pw }); toast("Clave actualizada ✓"); }
+    try { await rpc("at_staff_change_password", { p_old: old, p_new: pw }); toast("Clave actualizada ✓"); }
     catch (err) { toast(err.message, true); }
   });
 
   $("#logout").addEventListener("click", async () => {
     if (dirty && !confirm("Tienes cambios sin guardar. ¿Salir igual?")) return;
     dirty = false;
-    try { await rpc("staff_logout"); } catch (_) {}
-    setToken(null);
-    location.reload();
+    try { await rpc("at_staff_logout"); } catch (_) {}
+    redirectToLogin();
   });
 
-  const loadAll = () => PYROCORE.fetchFromSupabase(sb.rpc("staff_schedule", { p_token: token }));
+  const loadAll = () => PYROCORE.fetchFromSupabase(sb.rpc("at_staff_schedule", { p_token: token }));
   const expired = (err) => /Sesión vencida/.test(err.message);
 
   (async () => {
-    if (!token) return showLogin();
+    if (!token) return redirectToLogin();
     try {
-      me = await rpc("staff_me");
+      me = await rpc("at_staff_me");
       await boot();
     } catch (_) {
-      setToken(null);
-      showLogin();
+      redirectToLogin();
     }
   })();
 
@@ -141,11 +112,9 @@
     try {
       data = normalize(await loadAll());
     } catch (err) {
-      if (expired(err)) { setToken(null); return showLogin(err.message); }
+      if (expired(err)) { return redirectToLogin(); }
       return toast("No se pudo cargar la base de datos: " + err.message, true);
     }
-    $("#login-view").hidden = true;
-    $("#admin-view").hidden = false;
     $("#savebar").hidden = false;
     $("#logout").hidden = false;
     $("#change-pw").hidden = false;
@@ -353,7 +322,7 @@
     const table = $("#users-table");
     table.innerHTML = `<tr><td class="hint">Cargando…</td></tr>`;
     try {
-      const users = await rpc("staff_list_users");
+      const users = await rpc("at_staff_list_users");
       table.innerHTML = `<thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Alta</th><th></th></tr></thead><tbody>${users.map((u) => {
         const self = u.id === me.id;
         return `<tr>
@@ -378,7 +347,7 @@
     e.preventDefault();
     const f = new FormData(e.target);
     try {
-      await rpc("staff_create_user", {
+      await rpc("at_staff_create_user", {
         p_username: f.get("username"), p_password: f.get("password"), p_display_name: f.get("display_name"), p_role: f.get("role"),
       });
       toast(`Usuario ${f.get("username").toLowerCase()} creado`);
@@ -461,7 +430,7 @@
     if (el.dataset.role) {
       const role = el.value;
       if (!confirm(`¿Cambiar el rol a "${role}"?`)) return renderUsers();
-      try { await rpc("staff_update_user", { p_id: el.dataset.role, p_role: role, p_password: null }); toast("Rol actualizado"); }
+      try { await rpc("at_staff_update_user", { p_id: el.dataset.role, p_role: role, p_password: null }); toast("Rol actualizado"); }
       catch (err) { toast(err.message, true); }
       renderUsers();
       return;
@@ -502,13 +471,13 @@
     if (d.resetpw) {
       const pw = prompt(`Nueva clave para ${d.name} (mínimo 6 caracteres):`);
       if (!pw) return;
-      try { await rpc("staff_update_user", { p_id: d.resetpw, p_role: d.urole, p_password: pw }); toast(`Clave de ${d.name} actualizada`); }
+      try { await rpc("at_staff_update_user", { p_id: d.resetpw, p_role: d.urole, p_password: pw }); toast(`Clave de ${d.name} actualizada`); }
       catch (err) { toast(err.message, true); }
       return;
     }
     if (d.deluser) {
       if (!confirm(`¿Eliminar el usuario ${d.name}?`)) return;
-      try { await rpc("staff_delete_user", { p_id: d.deluser }); toast("Usuario eliminado"); renderUsers(); }
+      try { await rpc("at_staff_delete_user", { p_id: d.deluser }); toast("Usuario eliminado"); renderUsers(); }
       catch (err) { toast(err.message, true); }
       return;
     }
@@ -611,7 +580,7 @@
       data.schedule.forEach((m) => { m.id ||= uuid(); });
       data.results.forEach((g) => { g.id ||= uuid(); g.rows.forEach((r) => { r.id ||= uuid(); }); });
       data.sponsors.forEach((x) => { x.id ||= uuid(); });
-      await rpc("staff_save", { p_data: { ...data, touched: [...touchedGroups] } });
+      await rpc("at_staff_save", { p_data: { ...data, touched: [...touchedGroups] } });
 
       dirty = false;
       touchedGroups.clear();
