@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 · Aliens Tournaments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080b;--teal:#00e5b0;--gold:#ffb547;
+  --text:#e5eaf2;--muted:#6b7685;--border:#1e2229;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Inter',sans-serif;
+}
+html,body{height:100%}
+body{
+  font-family:var(--fb);background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100dvh;padding:24px;text-align:center;overflow:hidden;
+}
+
+/* grid de fondo */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,176,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,176,.04) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 0%,transparent 100%);
+  pointer-events:none;
+}
+
+.num{
+  font:900 clamp(7rem,22vw,14rem)/1 var(--fd);
+  letter-spacing:-.02em;
+  background:linear-gradient(135deg,var(--teal) 0%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 48px rgba(0,229,176,.25));
+  user-select:none;
+}
+.label{
+  font:800 clamp(1rem,4vw,1.6rem)/1.2 var(--fd);
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-top:8px;
+}
+.desc{
+  font-size:.9rem;color:var(--muted);margin-top:16px;max-width:340px;line-height:1.6;
+}
+.actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;justify-content:center}
+.btn{
+  border-radius:6px;padding:11px 24px;font:600 .82rem var(--fb);
+  cursor:pointer;text-decoration:none;transition:filter .15s,transform .12s;border:0;
+}
+.btn:hover{filter:brightness(1.12)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--teal);color:#07080b}
+.btn.ghost{
+  background:transparent;color:var(--text);
+  border:1px solid var(--border);
+}
+.btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
+</style>
+</head>
+<body>
+  <p class="num">404</p>
+  <p class="label">Página no encontrada</p>
+  <p class="desc">La página que buscas no existe o fue eliminada.</p>
+  <div class="actions">
+    <a class="btn primary" href="index.html">Ir al inicio</a>
+    <a class="btn ghost" href="javascript:history.back()">Volver atrás</a>
+  </div>
+</body>
+</html>
