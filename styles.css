@@ -789,7 +789,8 @@ footer {
 .prize-card.third  { border-color: rgba(180,100,60,.25); background: linear-gradient(160deg,#120e0a,#0d1117); }
 .prize-card:hover  { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,0,0,.4); }
 
-.prize-icon { font-size: 2.2rem; line-height: 1; }
+.prize-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.prize-icon svg { width: 100%; height: 100%; }
 
 .prize-place {
   font: 800 1rem/1 'Barlow Condensed', sans-serif;
@@ -814,6 +815,10 @@ footer {
 .prize-card.first  .prize-amount { color: #ffd700; }
 .prize-card.second .prize-amount { color: #c0c8d8; }
 .prize-card.third  .prize-amount { color: #cd7f32; }
+.prize-card.first  .prize-icon { color: #ffd700; }
+.prize-card.second .prize-icon { color: #c0c8d8; }
+.prize-card.third  .prize-icon { color: #cd7f32; }
+.prize-card:not(.first):not(.second):not(.third) .prize-icon { color: rgba(0,230,255,.7); }
 
 .prizes-empty {
   text-align: center;
@@ -825,7 +830,7 @@ footer {
 
 @media (max-width: 480px) {
   .prizes-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .prize-icon { font-size: 1.8rem; }
+  .prize-icon { width: 36px; height: 36px; }
   .prize-amount { font-size: 1.2rem; }
 }
 

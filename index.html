@@ -158,7 +158,7 @@
   <div class="sec-eyebrow">Temporada 1 · S1</div>
   <h2 class="sec-title">Equipos Participantes</h2>
   <div class="teams-search-wrap">
-    <input type="search" id="teamsSearch" class="teams-search" placeholder="🔍  Buscar equipo…" autocomplete="off">
+    <input type="search" id="teamsSearch" class="teams-search" placeholder="Buscar equipo…" autocomplete="off">
   </div>
   <div class="teams-grid" id="teamsGrid">
     <div class="teams-skeleton">
@@ -191,8 +191,8 @@
 <div class="welcome-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-label="Bienvenida al equipo">
   <div class="wm-backdrop" id="wmBackdrop"></div>
   <div class="wm-box">
-    <button class="wm-download" id="wmDownload" title="Descargar imagen">⬇ Descargar</button>
-    <button class="wm-close" id="wmClose" aria-label="Cerrar">✕</button>
+    <button class="wm-download" id="wmDownload" title="Descargar imagen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar</button>
+    <button class="wm-close" id="wmClose" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div class="wm-canvas-wrap">
       <canvas id="wmCanvas"></canvas>
       <div class="wm-loading" id="wmLoading">Generando imagen…</div>
@@ -260,6 +260,7 @@
 (async () => {
   try {
     const d = await PYROCORE.loadData();
+    const esc = PYROCORE.esc;
     const L = d.links || {};
     const ICONS = { whatsapp: "WA", discord: "DC", instagram: "IG", tiktok: "TK", youtube: "YT", twitch: "TV" };
 
@@ -284,10 +285,14 @@
     // Premios
     const prizesGrid = document.getElementById("prizesGrid");
     if (prizesGrid && d.prizes?.length) {
-      const ICONS = ["🥇","🥈","🥉"];
+      const PRIZE_ICONS = [
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/><path d="M12 17v4"/><path d="M8 21h8"/><path d="M6 2h12v7a6 6 0 0 1-12 0z"/></svg>`,
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="15" r=".5" fill="currentColor"/><path d="M8 20l4-4 4 4"/></svg>`,
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8 20l4-4 4 4"/></svg>`,
+      ];
       prizesGrid.innerHTML = d.prizes.map((p, i) => `
         <div class="prize-card ${i === 0 ? "first" : i === 1 ? "second" : i === 2 ? "third" : ""}">
-          <div class="prize-icon">${ICONS[i] || "🏆"}</div>
+          <div class="prize-icon">${PRIZE_ICONS[i] || PRIZE_ICONS[0]}</div>
           <div class="prize-place">${esc(p.place)}</div>
           ${p.reason ? `<div class="prize-reason">${esc(p.reason)}</div>` : ""}
           <div class="prize-amount">${esc(p.amount)}</div>
@@ -303,7 +308,7 @@
     const noResults = document.getElementById("teamsNoResults");
     const searchEl = document.getElementById("teamsSearch");
 
-    const esc = s => String(s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 
     function renderTeamCards(list) {
       if (!grid) return;
@@ -389,7 +394,7 @@
                   ${logoImg(row.team, qual)}
                   <span class="rg-name">${esc(row.team)}</span>
                   <span class="rg-pts">${total(row)}</span>
-                  ${qual ? `<span class="rg-badge">✓</span>` : ""}
+                  ${qual ? `<span class="rg-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>` : ""}
                 </div>`;
               }).join("")}
             </div>
@@ -519,9 +524,9 @@
     const grid = document.getElementById("teamsGrid");
     if (grid) grid.innerHTML = "";
     const empty = document.getElementById("teamsEmpty");
-    if (empty) empty.style.display = "block";
+    if (empty) { empty.textContent = "Error: " + (e?.message || e); empty.style.display = "block"; }
     const resBody = document.getElementById("resBody");
-    if (resBody) resBody.innerHTML = `<p class="res-empty">No se pudo conectar con la base de datos.</p>`;
+    if (resBody) resBody.innerHTML = `<p class="res-empty">Error: ${String(e?.message || e)}</p>`;
   }
 })();
 </script>
