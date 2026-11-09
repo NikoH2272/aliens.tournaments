@@ -170,6 +170,13 @@
   <p class="teams-no-results" id="teamsNoResults" style="display:none">No se encontraron equipos.</p>
 </section>
 
+<!-- ── PREMIOS ── -->
+<section class="section prizes-section" id="premios">
+  <div class="sec-eyebrow">Temporada 1 · S1</div>
+  <h2 class="sec-title">Premios</h2>
+  <div class="prizes-grid" id="prizesGrid"></div>
+</section>
+
 <!-- ── RESULTADOS ── -->
 <section class="section results-section" id="resultados">
   <div class="sec-eyebrow">En vivo · S1</div>
@@ -274,6 +281,21 @@
         .join("");
       if (html) social.innerHTML = html;
     }
+    // Premios
+    const prizesGrid = document.getElementById("prizesGrid");
+    if (prizesGrid && d.prizes?.length) {
+      const ICONS = ["🥇","🥈","🥉"];
+      prizesGrid.innerHTML = d.prizes.map((p, i) => `
+        <div class="prize-card ${i === 0 ? "first" : i === 1 ? "second" : i === 2 ? "third" : ""}">
+          <div class="prize-icon">${ICONS[i] || "🏆"}</div>
+          <div class="prize-place">${esc(p.place)}</div>
+          ${p.reason ? `<div class="prize-reason">${esc(p.reason)}</div>` : ""}
+          <div class="prize-amount">${esc(p.amount)}</div>
+        </div>`).join("");
+    } else if (prizesGrid) {
+      prizesGrid.innerHTML = `<p class="prizes-empty">Premios próximamente.</p>`;
+    }
+
     // Equipos
     const teams = (d.teams || []).filter(t => t.active);
     const grid = document.getElementById("teamsGrid");

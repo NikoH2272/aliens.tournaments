@@ -762,6 +762,73 @@ footer {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+/* ── PREMIOS ─────────────────────────────── */
+.prizes-section { background: var(--bg); }
+
+.prizes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.prize-card {
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px;
+  padding: 28px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  transition: transform .2s, box-shadow .2s;
+}
+.prize-card.first  { border-color: rgba(255,210,0,.3);  background: linear-gradient(160deg,#141008,#0d1117); }
+.prize-card.second { border-color: rgba(180,180,200,.25); background: linear-gradient(160deg,#0f1118,#0d1117); }
+.prize-card.third  { border-color: rgba(180,100,60,.25); background: linear-gradient(160deg,#120e0a,#0d1117); }
+.prize-card:hover  { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,0,0,.4); }
+
+.prize-icon { font-size: 2.2rem; line-height: 1; }
+
+.prize-place {
+  font: 800 1rem/1 'Barlow Condensed', sans-serif;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #e5eaf2;
+}
+
+.prize-reason {
+  font: 500 .72rem/1 'Inter', sans-serif;
+  color: rgba(0,230,255,.7);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.prize-amount {
+  font: 800 1.4rem/1 'Barlow Condensed', sans-serif;
+  letter-spacing: .04em;
+  color: #fff;
+  margin-top: 4px;
+}
+.prize-card.first  .prize-amount { color: #ffd700; }
+.prize-card.second .prize-amount { color: #c0c8d8; }
+.prize-card.third  .prize-amount { color: #cd7f32; }
+
+.prizes-empty {
+  text-align: center;
+  color: rgba(255,255,255,.3);
+  font-size: .9rem;
+  grid-column: 1/-1;
+  padding: 24px 0;
+}
+
+@media (max-width: 480px) {
+  .prizes-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .prize-icon { font-size: 1.8rem; }
+  .prize-amount { font-size: 1.2rem; }
+}
+
 /* ── RESULTADOS PÚBLICOS ─────────────────── */
 .results-section { background: var(--bg); }
 
