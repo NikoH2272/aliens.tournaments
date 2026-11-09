@@ -1258,3 +1258,104 @@ footer {
 @media (min-width: 1200px) {
   .teams-grid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 16px; }
 }
+/* ── CRONOGRAMA PÚBLICO ─────────────────── */
+.sched-section { }
+.sched-pub-body { margin-top: 24px; }
+
+.sp-phase { margin-bottom: 32px; }
+.sp-phase-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 12px;
+  padding-left: 2px;
+}
+.sp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.sp-card {
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sp-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sp-group {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #fff;
+}
+.sp-badge {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.sp-next  { background: rgba(255,255,255,.07); color: rgba(255,255,255,.45); }
+.sp-live  { background: rgba(0,230,176,.15); color: #00e6b0; animation: livePulse 1.4s ease-in-out infinite; }
+.sp-done  { background: rgba(255,255,255,.04); color: rgba(255,255,255,.25); }
+
+@keyframes livePulse {
+  0%,100% { opacity:1; } 50% { opacity:.55; }
+}
+
+.sp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: .72rem;
+  color: rgba(255,255,255,.45);
+}
+.sp-teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+.sp-team {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .72rem;
+  color: rgba(255,255,255,.65);
+  background: rgba(255,255,255,.04);
+  border-radius: 6px;
+  padding: 3px 7px 3px 4px;
+  transition: background .15s;
+}
+.sp-team img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.sp-team.sp-match {
+  background: rgba(0,180,216,.12);
+  color: rgba(255,255,255,.9);
+  border: 1px solid rgba(0,180,216,.25);
+}
+.sp-no-teams {
+  font-size: .68rem;
+  color: rgba(255,255,255,.2);
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .sp-cards { grid-template-columns: 1fr; }
+}

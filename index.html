@@ -19,9 +19,9 @@
     <span>ALIENS<em>.</em>GG</span>
   </a>
   <nav class="hdr-nav" id="hdrNav" aria-label="Navegación principal">
-    <a href="#torneos">Torneos</a>
+    <a href="#cronograma">Cronograma</a>
     <a href="#equipos">Equipos</a>
-    <a href="#calendario">Calendario</a>
+    <a href="#resultados">Resultados</a>
     <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" data-dyn="whatsapp">Comunidad</a>
   </nav>
   <span class="btn-reg btn-reg--closed">Inscripciones cerradas</span>
@@ -89,69 +89,17 @@
   </div>
 </div>
 
-<section class="section" id="torneos">
-  <div class="sec-eyebrow">Cronograma · S1</div>
-  <h2 class="sec-title">Formato del Torneo</h2>
-  <div class="phases">
-    <div class="phase">
-      <div class="phase-num">Fase 01</div>
-      <div class="phase-name">Cuartos de Final</div>
-      <div class="phase-stats">
-        <div class="phase-stat"><strong>72</strong> equipos · <strong>6</strong> grupos</div>
-        <div class="phase-stat">Clasifican <strong>36</strong> tabla general</div>
-        <div class="phase-stat"><strong>2</strong> salas por grupo</div>
-      </div>
-      <div class="phase-dates">
-        <div class="date-row">
-          <span class="date-day">Lun 9 — G1·G2·G3</span>
-          <span class="date-time">6–8 PM MX</span>
-        </div>
-        <div class="date-row">
-          <span class="date-day">Mar 10 — G4·G5·G6</span>
-          <span class="date-time">6–8 PM MX</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="phase">
-      <div class="phase-num">Fase 02</div>
-      <div class="phase-name">Semifinal</div>
-      <div class="phase-stats">
-        <div class="phase-stat"><strong>36</strong> equipos · <strong>3</strong> grupos</div>
-        <div class="phase-stat">Clasifican <strong>12</strong> tabla general</div>
-        <div class="phase-stat"><strong>4</strong> salas por grupo</div>
-      </div>
-      <div class="phase-dates">
-        <div class="date-row">
-          <span class="date-day">Jue 12 — G1·G2</span>
-          <span class="date-time">6 y 8 PM MX</span>
-        </div>
-        <div class="date-row">
-          <span class="date-day">Vie 13 — G3</span>
-          <span class="date-time">8 PM MX</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="phase final">
-      <div class="phase-num">Fase 03</div>
-      <div class="phase-name">Gran Final</div>
-      <div class="phase-stats">
-        <div class="phase-stat"><strong>12</strong> equipos</div>
-        <div class="phase-stat"><strong>6</strong> salas · <strong>1</strong> jornada</div>
-        <div class="phase-stat">El campeón se decide aquí</div>
-      </div>
-      <div class="phase-dates">
-        <div class="date-row">
-          <span class="date-day">Lunes 16</span>
-          <span class="date-time">8 PM MX</span>
-        </div>
-      </div>
-    </div>
+<!-- ── CRONOGRAMA ── -->
+<section class="section sched-section" id="cronograma">
+  <div class="sec-eyebrow">Temporada 1 · S1</div>
+  <h2 class="sec-title">Cronograma</h2>
+  <div class="teams-search-wrap">
+    <input type="search" id="schedSearch" class="teams-search" placeholder="Buscar tu equipo…" autocomplete="off">
+  </div>
+  <div class="sched-pub-body" id="schedBody">
+    <div class="res-loading">Cargando cronograma…</div>
   </div>
 </section>
-
-
 
 <!-- ── EQUIPOS ── -->
 <section class="section teams-section" id="equipos">
@@ -184,6 +132,52 @@
   <div class="res-tabs" id="resTabs"></div>
   <div class="res-body" id="resBody">
     <div class="res-loading">Cargando resultados…</div>
+  </div>
+</section>
+
+<!-- ── FORMATO ── -->
+<section class="section" id="torneos">
+  <div class="sec-eyebrow">Formato · S1</div>
+  <h2 class="sec-title">Formato del Torneo</h2>
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-num">Fase 01</div>
+      <div class="phase-name">Cuartos de Final</div>
+      <div class="phase-stats">
+        <div class="phase-stat"><strong>72</strong> equipos · <strong>6</strong> grupos</div>
+        <div class="phase-stat">Clasifican <strong>36</strong> tabla general</div>
+        <div class="phase-stat"><strong>2</strong> salas por grupo</div>
+      </div>
+      <div class="phase-dates">
+        <div class="date-row"><span class="date-day">Lun 9 — G1·G2·G3</span><span class="date-time">6–8 PM MX</span></div>
+        <div class="date-row"><span class="date-day">Mar 10 — G4·G5·G6</span><span class="date-time">6–8 PM MX</span></div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-num">Fase 02</div>
+      <div class="phase-name">Semifinal</div>
+      <div class="phase-stats">
+        <div class="phase-stat"><strong>36</strong> equipos · <strong>3</strong> grupos</div>
+        <div class="phase-stat">Clasifican <strong>12</strong> tabla general</div>
+        <div class="phase-stat"><strong>4</strong> salas por grupo</div>
+      </div>
+      <div class="phase-dates">
+        <div class="date-row"><span class="date-day">Jue 12 — G1·G2</span><span class="date-time">6 y 8 PM MX</span></div>
+        <div class="date-row"><span class="date-day">Vie 13 — G3</span><span class="date-time">8 PM MX</span></div>
+      </div>
+    </div>
+    <div class="phase final">
+      <div class="phase-num">Fase 03</div>
+      <div class="phase-name">Gran Final</div>
+      <div class="phase-stats">
+        <div class="phase-stat"><strong>12</strong> equipos</div>
+        <div class="phase-stat"><strong>6</strong> salas · <strong>1</strong> jornada</div>
+        <div class="phase-stat">El campeón se decide aquí</div>
+      </div>
+      <div class="phase-dates">
+        <div class="date-row"><span class="date-day">Lunes 16</span><span class="date-time">8 PM MX</span></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -351,6 +345,96 @@
       grid.innerHTML = "";
       if (empty) empty.style.display = "block";
     }
+
+    // ── Cronograma público ──
+    (() => {
+      const { teamLogo } = PYROCORE;
+      const schedule = (d.schedule || []).filter(m => m.visible);
+      const teamsArr = d.teams || [];
+      const bodyEl = document.getElementById("schedBody");
+      const searchEl = document.getElementById("schedSearch");
+      if (!bodyEl) return;
+
+      if (!schedule.length) { bodyEl.innerHTML = `<p class="res-empty">Cronograma próximamente.</p>`; return; }
+
+      const STATUS_LABEL = { proximo: "Próximo", envivo: "EN VIVO", finalizado: "Finalizado" };
+      const STATUS_CLS   = { proximo: "sp-next", envivo: "sp-live", finalizado: "sp-done" };
+
+      function fmtDate(dateStr) {
+        if (!dateStr) return "";
+        try {
+          const d = new Date(dateStr + "T00:00:00");
+          return d.toLocaleDateString("es", { weekday:"short", day:"numeric", month:"short" });
+        } catch(_) { return dateStr; }
+      }
+      function fmtTime(t) {
+        if (!t) return "";
+        const [h, m] = t.split(":").map(Number);
+        const hh = h % 12 || 12;
+        return `${hh}:${String(m||0).padStart(2,"0")} ${h < 12 ? "AM" : "PM"} MX`;
+      }
+
+      function getGroupTeams(phase, group) {
+        const g = (d.results || []).find(r =>
+          r.kind !== "general" &&
+          r.phase === phase &&
+          (r.title || "").toLowerCase() === (group || "").toLowerCase()
+        );
+        return g ? g.rows.filter(r => (r.team || "").trim()) : [];
+      }
+
+      function renderSched(q) {
+        const filtered = q
+          ? schedule.filter(m => {
+              const rows = getGroupTeams(m.phase, m.group);
+              return rows.some(r => r.team.toLowerCase().includes(q));
+            })
+          : schedule;
+
+        if (!filtered.length) {
+          bodyEl.innerHTML = `<p class="res-empty">No se encontraron grupos para ese equipo.</p>`;
+          return;
+        }
+
+        // agrupar por fase
+        const byPhase = {};
+        filtered.forEach(m => { (byPhase[m.phase] ??= []).push(m); });
+
+        bodyEl.innerHTML = Object.entries(byPhase).map(([phase, entries]) => `
+          <div class="sp-phase">
+            <div class="sp-phase-label">${esc(phase)}</div>
+            <div class="sp-cards">${entries.map(m => {
+              const rows = getGroupTeams(m.phase, m.group);
+              const status = m.status || "proximo";
+              const teams = rows.map(r => {
+                const lp = teamLogo(teamsArr, r.team) || "logo.png";
+                const isMatch = q && r.team.toLowerCase().includes(q);
+                return `<div class="sp-team ${isMatch ? "sp-match" : ""}">
+                  <img src="${lp}" alt="${esc(r.team)}" loading="lazy" onerror="this.src='logo.png'">
+                  <span>${esc(r.team)}</span>
+                </div>`;
+              }).join("");
+              return `<div class="sp-card">
+                <div class="sp-card-head">
+                  <span class="sp-group">${esc(m.group || "Grupo")}</span>
+                  <span class="sp-badge ${STATUS_CLS[status] || "sp-next"}">${STATUS_LABEL[status] || status}</span>
+                </div>
+                <div class="sp-meta">
+                  ${m.date ? `<span>${fmtDate(m.date)}</span>` : ""}
+                  ${m.time ? `<span>${fmtTime(m.time)}</span>` : ""}
+                  ${m.rooms > 1 ? `<span>${m.rooms} salas</span>` : ""}
+                </div>
+                <div class="sp-teams">${teams || `<span class="sp-no-teams">Equipos por confirmar</span>`}</div>
+              </div>`;
+            }).join("")}</div>
+          </div>`).join("");
+      }
+
+      renderSched("");
+      if (searchEl) {
+        searchEl.addEventListener("input", () => renderSched(searchEl.value.trim().toLowerCase()));
+      }
+    })();
 
     // ── Resultados públicos ──
     (() => {
