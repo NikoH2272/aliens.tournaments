@@ -514,7 +514,15 @@
       }
     });
 
-  } catch(_) {}
+  } catch(e) {
+    console.error("loadData error:", e);
+    const grid = document.getElementById("teamsGrid");
+    if (grid) grid.innerHTML = "";
+    const empty = document.getElementById("teamsEmpty");
+    if (empty) empty.style.display = "block";
+    const resBody = document.getElementById("resBody");
+    if (resBody) resBody.innerHTML = `<p class="res-empty">No se pudo conectar con la base de datos.</p>`;
+  }
 })();
 </script>
 </body>
