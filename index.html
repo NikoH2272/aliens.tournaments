@@ -170,6 +170,16 @@
   <p class="teams-no-results" id="teamsNoResults" style="display:none">No se encontraron equipos.</p>
 </section>
 
+<!-- ── RESULTADOS ── -->
+<section class="section results-section" id="resultados">
+  <div class="sec-eyebrow">En vivo · S1</div>
+  <h2 class="sec-title">Resultados</h2>
+  <div class="res-tabs" id="resTabs"></div>
+  <div class="res-body" id="resBody">
+    <div class="res-loading">Cargando resultados…</div>
+  </div>
+</section>
+
 <!-- ── MODAL BIENVENIDA ── -->
 <div class="welcome-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-label="Bienvenida al equipo">
   <div class="wm-backdrop" id="wmBackdrop"></div>
@@ -314,6 +324,71 @@
       grid.innerHTML = "";
       if (empty) empty.style.display = "block";
     }
+
+    // ── Resultados públicos ──
+    (() => {
+      const { sortRows, total, teamLogo } = PYROCORE;
+      const results = d.results || [];
+      const teamsArr = d.teams || [];
+      const tabsEl = document.getElementById("resTabs");
+      const bodyEl = document.getElementById("resBody");
+      if (!tabsEl || !bodyEl) return;
+
+      const phases = [...new Set(results.map(g => g.phase))];
+      if (!phases.length) { bodyEl.innerHTML = `<p class="res-empty">Aún no hay resultados publicados.</p>`; return; }
+
+      let curPhase = phases[0];
+
+      function logoImg(name, qualified) {
+        const path = teamLogo(teamsArr, name);
+        if (!path) return `<span class="rg-no-logo"></span>`;
+        return `<img class="rg-logo ${qualified ? "" : "eliminated"}" src="${esc(path)}" alt="${esc(name)}" loading="lazy" onerror="this.style.visibility='hidden'">`;
+      }
+
+      function renderPhase(phase) {
+        const groups = results.filter(g => g.phase === phase && g.kind !== "general");
+        const genGroup = results.find(g => g.phase === phase && g.kind === "general");
+        const genQ = Number(genGroup?.qualify) || 0;
+
+        if (!groups.length) return `<p class="res-empty">Sin grupos en esta fase.</p>`;
+
+        return groups.map(g => {
+          const q = Number(g.qualify) || 0;
+          const filled = g.rows.filter(r => (r.team || "").trim());
+          const sorted = sortRows(filled);
+          const qualSet = new Set(sorted.slice(0, q));
+          return `<div class="res-group">
+            <div class="rg-head">${esc(g.title || "Grupo")}</div>
+            <div class="rg-rows">
+              ${sorted.map((row, k) => {
+                const qual = qualSet.has(row);
+                return `<div class="rg-row ${qual ? "qual" : "out"}">
+                  <span class="rg-pos">${k + 1}</span>
+                  ${logoImg(row.team, qual)}
+                  <span class="rg-name">${esc(row.team)}</span>
+                  <span class="rg-pts">${total(row)}</span>
+                  ${qual ? `<span class="rg-badge">✓</span>` : ""}
+                </div>`;
+              }).join("")}
+            </div>
+          </div>`;
+        }).join("");
+      }
+
+      function render() {
+        tabsEl.innerHTML = phases.map(p =>
+          `<button class="res-tab ${p === curPhase ? "active" : ""}" data-phase="${esc(p)}">${esc(p)}</button>`
+        ).join("");
+        bodyEl.innerHTML = `<div class="res-groups">${renderPhase(curPhase)}</div>`;
+      }
+
+      tabsEl.addEventListener("click", e => {
+        const btn = e.target.closest("[data-phase]");
+        if (btn) { curPhase = btn.dataset.phase; render(); }
+      });
+
+      render();
+    })();
 
     // ── Modal bienvenida ──
     const BANNER_SRC = "imagenes/banner/bienvenida-aliens.png";

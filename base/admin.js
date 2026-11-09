@@ -238,6 +238,7 @@
           ${rows.length ? `<ol class="gen-grid admin-gen">${rows.map((row, k) => (dupOnly.has(phase) && !row.dup) ? "" : `
             <li class="${k < q ? "qualified" : ""} ${k === q - 1 ? "cutline" : ""} ${k < 3 ? `top${k + 1}` : ""} ${row.dup ? "dup" : ""}">
               <span class="gen-pos">${k + 1}</span>
+              ${(() => { const lp = PYROCORE.teamLogo(data.teams, row.name || row.team); return lp ? `<img src="${lp}" style="width:20px;height:20px;object-fit:contain;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'">` : ""; })()}
               <span class="gen-team"><b>${esc(row.team)}</b>
                 <small>${esc(row.group)} · K ${Number(row.kills) || 0} · P.P ${Number(row.placement) || 0}${row.penalty ? ` · S -${Number(row.penalty)}` : ""}</small></span>
               <span class="gen-pts">${total(row)}</span>
@@ -281,14 +282,17 @@
         <div class="grid-2">${input(`results.${i}.title`, "Nombre (pestaña)")}${input(`results.${i}.qualify`, "Clasifican (top N)", { type: "number" })}</div>
         <div class="table-wrap"><table class="edit-table">
           <thead><tr><th>Equipo</th><th>Kills</th><th>P.P</th><th>Sanciones</th><th>Total</th><th></th></tr></thead>
-          <tbody>${(r.rows || []).map((row, k) => `<tr class="${ranked.has(row) ? "qualified" : ""}">
-            <td><input data-bind="results.${i}.rows.${k}.team" value="${esc(row.team)}" placeholder="Equipo ${k + 1}"></td>
+          <tbody>${(r.rows || []).map((row, k) => {
+            const lp = PYROCORE.teamLogo(data.teams, row.team);
+            return `<tr class="${ranked.has(row) ? "qualified" : ""}">
+            <td class="team-logo-cell"><img class="row-team-logo" src="${lp || ""}" alt="" ${lp ? "" : 'style="display:none"'} onerror="this.style.display='none'"><input data-bind="results.${i}.rows.${k}.team" value="${esc(row.team)}" placeholder="Equipo ${k + 1}"></td>
             <td><input data-bind="results.${i}.rows.${k}.kills" type="number" min="0" value="${Number(row.kills) || 0}"></td>
             <td><input data-bind="results.${i}.rows.${k}.placement" type="number" min="0" value="${Number(row.placement) || 0}"></td>
             <td><input data-bind="results.${i}.rows.${k}.penalty" type="number" min="0" value="${Number(row.penalty) || 0}"></td>
             <td class="total" data-total="${i}.${k}">${total(row)}</td>
             <td><button class="x" data-del="results.${i}.rows.${k}" title="Quitar">✕</button></td>
-          </tr>`).join("")}</tbody>
+          </tr>`;
+          }).join("")}</tbody>
         </table></div>
         <div class="toolbar" style="margin-top:10px">
           <button class="btn ghost sm" data-addrow="${i}">+ Equipo</button>
