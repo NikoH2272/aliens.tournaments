@@ -56,6 +56,7 @@
   const normalize = (d) => {
     d.tournament ??= {}; d.links ??= {};
     d.prizes ??= []; d.schedule ??= []; d.results ??= []; d.sponsors ??= []; d.teams ??= [];
+    d.prizes.forEach(p => { p.reason ??= ""; });
     d.teams.forEach((t) => { t.instagram ??= ""; });
     d.tournament.state = STATES[d.tournament.state] ? d.tournament.state : "abierto";
     ["rulesText", "clarificationsText", "prohibitedText", "rulesNote"].forEach((k) => {
@@ -167,9 +168,9 @@
 
   function renderPrizes() {
     $("#prize-list").innerHTML = data.prizes.map((_, i) => `
-      <div class="row-card"><div class="inline-grid" style="grid-template-columns:1fr 1fr 32px;align-items:end">
-        ${input(`prizes.${i}.place`, "Puesto")}${input(`prizes.${i}.amount`, "Premio")}
-        <button class="x" data-del="prizes.${i}" title="Eliminar" style="margin-bottom:14px">✕</button>
+      <div class="row-card"><div class="inline-grid" style="grid-template-columns:1fr 1fr 1fr 32px;align-items:end">
+        ${input(`prizes.${i}.place`, "Puesto")}${input(`prizes.${i}.amount`, "Premio / Monto")}${input(`prizes.${i}.reason`, "Motivo (ej: MVP, Top Kills…)")}
+        <button class="x" data-delpz="${i}" title="Eliminar" style="margin-bottom:14px">✕</button>
       </div></div>`).join("");
   }
 
@@ -621,6 +622,11 @@
       if (!confirm(`¿Eliminar el usuario ${d.name}?`)) return;
       try { await rpc("at_staff_delete_user", { p_id: d.deluser }); toast("Usuario eliminado"); renderUsers(); }
       catch (err) { toast(err.message, true); }
+      return;
+    }
+    if (d.delpz !== undefined) {
+      data.prizes.splice(+d.delpz, 1);
+      renderPrizes(); markDirty();
       return;
     }
     if (d.delteam !== undefined) {
