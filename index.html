@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -155,8 +156,8 @@
 <section class="section teams-section" id="equipos">
   <div class="sec-eyebrow">Temporada 1 · S1</div>
   <h2 class="sec-title">Equipos Participantes</h2>
-  <div class="teams-filter" id="teamsFilter" style="display:none">
-    <button class="tf-btn active" data-filter="all">Todos</button>
+  <div class="teams-search-wrap">
+    <input type="search" id="teamsSearch" class="teams-search" placeholder="🔍  Buscar equipo…" autocomplete="off">
   </div>
   <div class="teams-grid" id="teamsGrid">
     <div class="teams-skeleton">
@@ -165,7 +166,21 @@
     </div>
   </div>
   <p class="teams-empty" id="teamsEmpty" style="display:none">Sin equipos registrados aún.</p>
+  <p class="teams-no-results" id="teamsNoResults" style="display:none">No se encontraron equipos.</p>
 </section>
+
+<!-- ── MODAL BIENVENIDA ── -->
+<div class="welcome-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-label="Bienvenida al equipo">
+  <div class="wm-backdrop" id="wmBackdrop"></div>
+  <div class="wm-box">
+    <button class="wm-download" id="wmDownload" title="Descargar imagen">⬇ Descargar</button>
+    <button class="wm-close" id="wmClose" aria-label="Cerrar">✕</button>
+    <div class="wm-canvas-wrap">
+      <canvas id="wmCanvas"></canvas>
+      <div class="wm-loading" id="wmLoading">Generando imagen…</div>
+    </div>
+  </div>
+</div>
 
 <div class="cta">
   <h2 class="cta-title">ÚNETE AL<br><em>COMBATE</em></h2>
@@ -252,25 +267,151 @@
     const teams = (d.teams || []).filter(t => t.active);
     const grid = document.getElementById("teamsGrid");
     const empty = document.getElementById("teamsEmpty");
-    if (grid && teams.length) {
-      grid.innerHTML = teams.map(t => {
+    const noResults = document.getElementById("teamsNoResults");
+    const searchEl = document.getElementById("teamsSearch");
+
+    const esc = s => String(s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    function renderTeamCards(list) {
+      if (!grid) return;
+      if (!list.length) {
+        grid.innerHTML = "";
+        if (noResults) noResults.style.display = "block";
+        return;
+      }
+      if (noResults) noResults.style.display = "none";
+      grid.innerHTML = list.map(t => {
         const logo = `imagenes/equipos/${t.slug}.png`;
-        const ig = t.instagram ? (t.instagram.startsWith("@") ? t.instagram : "@" + t.instagram) : "";
+        const ig = t.instagram ? (t.instagram.startsWith("@") ? t.instagram : "@"+t.instagram) : "";
         const igUrl = ig ? `https://instagram.com/${ig.replace("@","")}` : null;
-        return `<div class="team-card">
+        return `<div class="team-card" data-slug="${esc(t.slug)}" data-name="${esc(t.name)}" role="button" tabindex="0" title="Ver bienvenida de ${esc(t.name)}">
           <div class="tc-logo">
-            <img src="${logo}" alt="${t.name}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
+            <img src="${logo}" alt="${esc(t.name)}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
           </div>
           <div class="tc-info">
-            <div class="tc-name">${t.name}</div>
-            ${ig ? `<a class="tc-ig" href="${igUrl}" target="_blank" rel="noopener">${ig}</a>` : ""}
+            <div class="tc-name">${esc(t.name)}</div>
+            ${ig ? `<a class="tc-ig" href="${igUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(ig)}</a>` : ""}
           </div>
         </div>`;
       }).join("");
+    }
+
+    if (teams.length) {
+      renderTeamCards(teams);
+      if (searchEl) {
+        searchEl.addEventListener("input", () => {
+          const q = searchEl.value.trim().toLowerCase();
+          const filtered = q ? teams.filter(t => t.name.toLowerCase().includes(q)) : teams;
+          renderTeamCards(filtered);
+        });
+      }
     } else if (grid) {
       grid.innerHTML = "";
       if (empty) empty.style.display = "block";
     }
+
+    // ── Modal bienvenida ──
+    const BANNER_SRC = "imagenes/banner/BIENVENIDA ALIENS.PNG";
+    // Posición del cuadro blanco en el banner (porcentajes del tamaño del banner)
+    const SQ = { x: 0.179, y: 0.317, w: 0.613, h: 0.496 };
+
+    const modal   = document.getElementById("welcomeModal");
+    const canvas  = document.getElementById("wmCanvas");
+    const loading = document.getElementById("wmLoading");
+    const dlBtn   = document.getElementById("wmDownload");
+    const closeBtn= document.getElementById("wmClose");
+    const backdrop= document.getElementById("wmBackdrop");
+
+    let _banner = null;
+    function loadBanner() {
+      if (_banner) return Promise.resolve(_banner);
+      return new Promise((res, rej) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => { _banner = img; res(img); };
+        img.onerror = rej;
+        img.src = BANNER_SRC;
+      });
+    }
+
+    async function openWelcome(slug, name) {
+      if (!modal || !canvas) return;
+      modal.classList.add("open");
+      document.body.style.overflow = "hidden";
+      loading.style.display = "flex";
+      canvas.style.display = "none";
+      dlBtn.style.display = "none";
+      let currentName = name;
+
+      try {
+        const [banner, logo] = await Promise.all([
+          loadBanner(),
+          new Promise((res) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => res(img);
+            img.onerror = () => res(null);
+            img.src = `imagenes/equipos/${slug}.png`;
+          })
+        ]);
+
+        const W = banner.naturalWidth;
+        const H = banner.naturalHeight;
+        canvas.width  = W;
+        canvas.height = H;
+        const ctx = canvas.getContext("2d");
+
+        // Dibuja el banner
+        ctx.drawImage(banner, 0, 0, W, H);
+
+        // Dibuja el logo del equipo centrado en el cuadro
+        if (logo) {
+          const sx = SQ.x * W, sy = SQ.y * H;
+          const sw = SQ.w * W, sh = SQ.h * H;
+          const pad = sw * 0.06; // padding interno
+          const maxW = sw - pad*2, maxH = sh - pad*2;
+          const scale = Math.min(maxW / logo.naturalWidth, maxH / logo.naturalHeight);
+          const dw = logo.naturalWidth * scale, dh = logo.naturalHeight * scale;
+          const dx = sx + (sw - dw) / 2;
+          const dy = sy + (sh - dh) / 2;
+          ctx.drawImage(logo, dx, dy, dw, dh);
+        }
+
+        loading.style.display = "none";
+        canvas.style.display = "block";
+        dlBtn.style.display = "inline-flex";
+        dlBtn.onclick = () => {
+          const a = document.createElement("a");
+          a.download = `Bienvenida_${currentName.replace(/\s+/g,"-")}.png`;
+          a.href = canvas.toDataURL("image/png");
+          a.click();
+        };
+      } catch(e) {
+        loading.textContent = "Error al cargar la imagen.";
+      }
+    }
+
+    function closeWelcome() {
+      if (modal) modal.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    if (closeBtn)  closeBtn.addEventListener("click", closeWelcome);
+    if (backdrop)  backdrop.addEventListener("click", closeWelcome);
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeWelcome(); });
+
+    document.getElementById("teamsGrid")?.addEventListener("click", e => {
+      const card = e.target.closest(".team-card");
+      if (!card) return;
+      openWelcome(card.dataset.slug, card.dataset.name);
+    });
+    document.getElementById("teamsGrid")?.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        const card = e.target.closest(".team-card");
+        if (card) { e.preventDefault(); openWelcome(card.dataset.slug, card.dataset.name); }
+      }
+    });
+
   } catch(_) {}
 })();
 </script>
