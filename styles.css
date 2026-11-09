@@ -830,14 +830,6 @@ footer {
   outline-offset: 2px;
 }
 
-/* colored top strip */
-.tc-top {
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #00c3ff, #00e6b0);
-  flex-shrink: 0;
-}
-
 /* logo area */
 .tc-logo-wrap {
   width: 100%;

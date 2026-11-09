@@ -286,7 +286,6 @@
         const igHandle = igRaw ? "@" + igRaw : "";
         const igUrl = igRaw ? `https://instagram.com/${igRaw}` : null;
         return `<div class="team-card" data-slug="${esc(t.slug)}" data-name="${esc(t.name)}" role="button" tabindex="0" title="Ver bienvenida de ${esc(t.name)}">
-          <div class="tc-top"></div>
           <div class="tc-logo-wrap">
             <div class="tc-logo">
               <img src="${logo}" alt="${esc(t.name)}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
