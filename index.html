@@ -282,15 +282,20 @@
       if (noResults) noResults.style.display = "none";
       grid.innerHTML = list.map(t => {
         const logo = `imagenes/equipos/${t.slug}.png`;
-        const ig = t.instagram ? (t.instagram.startsWith("@") ? t.instagram : "@"+t.instagram) : "";
-        const igUrl = ig ? `https://instagram.com/${ig.replace("@","")}` : null;
+        const igRaw = (t.instagram || "").replace(/^@/, "").trim();
+        const igHandle = igRaw ? "@" + igRaw : "";
+        const igUrl = igRaw ? `https://instagram.com/${igRaw}` : null;
         return `<div class="team-card" data-slug="${esc(t.slug)}" data-name="${esc(t.name)}" role="button" tabindex="0" title="Ver bienvenida de ${esc(t.name)}">
-          <div class="tc-logo">
-            <img src="${logo}" alt="${esc(t.name)}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
+          <div class="tc-top"></div>
+          <div class="tc-logo-wrap">
+            <div class="tc-logo">
+              <img src="${logo}" alt="${esc(t.name)}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
+            </div>
           </div>
           <div class="tc-info">
             <div class="tc-name">${esc(t.name)}</div>
-            ${ig ? `<a class="tc-ig" href="${igUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(ig)}</a>` : ""}
+            ${igHandle ? `<a class="tc-ig" href="${igUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(igHandle)}</a>` : ""}
+            <span class="tc-hint">toca para ver bienvenida</span>
           </div>
         </div>`;
       }).join("");
