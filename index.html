@@ -20,9 +20,9 @@
     <a href="#torneos">Torneos</a>
     <a href="#equipos">Equipos</a>
     <a href="#calendario">Calendario</a>
-    <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank">Comunidad</a>
+    <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" data-dyn="whatsapp">Comunidad</a>
   </nav>
-  <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" class="btn-reg" target="_blank">Inscribirse →</a>
+  <span class="btn-reg btn-reg--closed">Inscripciones cerradas</span>
   <button class="burger" aria-label="Menú" id="burgerBtn">
     <span></span><span></span><span></span>
   </button>
@@ -45,7 +45,7 @@
     <p class="hero-sub">Torneos · Competitivos · Free Fire LATAM <span class="dot"></span></p>
 
     <div class="hero-btns">
-      <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" class="btn-primary" target="_blank">Inscribir escuadra →</a>
+      <span class="btn-primary btn-closed">Inscripciones cerradas</span>
       <a href="#calendario" class="btn-outline">▶ Ver calendario</a>
     </div>
 
@@ -151,10 +151,26 @@
 
 
 
+<!-- ── EQUIPOS ── -->
+<section class="section teams-section" id="equipos">
+  <div class="sec-eyebrow">Temporada 1 · S1</div>
+  <h2 class="sec-title">Equipos Participantes</h2>
+  <div class="teams-filter" id="teamsFilter" style="display:none">
+    <button class="tf-btn active" data-filter="all">Todos</button>
+  </div>
+  <div class="teams-grid" id="teamsGrid">
+    <div class="teams-skeleton">
+      <div class="ts-card"></div><div class="ts-card"></div><div class="ts-card"></div>
+      <div class="ts-card"></div><div class="ts-card"></div><div class="ts-card"></div>
+    </div>
+  </div>
+  <p class="teams-empty" id="teamsEmpty" style="display:none">Sin equipos registrados aún.</p>
+</section>
+
 <div class="cta">
   <h2 class="cta-title">ÚNETE AL<br><em>COMBATE</em></h2>
   <p class="cta-sub">Inscribe tu escuadra antes del 5 de noviembre y compite por el título galáctico de la Temporada 1.</p>
-  <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" class="btn-primary" target="_blank">Inscribir escuadra →</a>
+  <span class="btn-primary btn-closed">Inscripciones cerradas</span>
 </div>
 
 <footer>
@@ -165,9 +181,9 @@
         <span>ALIENS<em>.</em>GG</span>
       </div>
       <p class="ft-desc">La organización de torneos de esports más intensa de Latinoamérica.</p>
-      <div class="ft-social">
-        <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" title="Discord">DC</a>
-        <a href="https://www.instagram.com/alien.sesport?psln=MXA0ZDQxNHNqMGt4NA%3D%3D&utm_source=qr" target="_blank" title="Instagram">IG</a>
+      <div class="ft-social" id="ft-social">
+        <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" title="WhatsApp" data-dyn="whatsapp">WA</a>
+        <a href="https://www.instagram.com/alien.sesport?psln=MXA0ZDQxNHNqMGt4NA%3D%3D&utm_source=qr" target="_blank" title="Instagram" data-dyn="instagram">IG</a>
       </div>
     </div>
     <div class="ft-col">
@@ -181,15 +197,15 @@
     <div class="ft-col">
       <h4>Comunidad</h4>
       <ul>
-        <li><a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank">Discord</a></li>
-        <li><a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank">Comunidad WhatsApp</a></li>
+        <li><a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" data-dyn="discord">Discord</a></li>
+        <li><a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" data-dyn="whatsapp">Comunidad WhatsApp</a></li>
       </ul>
     </div>
     <div class="ft-col">
       <h4>Soporte</h4>
       <ul>
         <li><a href="#torneos">Reglas</a></li>
-        <li><a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank">Contacto</a></li>
+        <li><a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" data-dyn="whatsapp">Contacto</a></li>
       </ul>
     </div>
     <div class="ft-bottom">
@@ -203,5 +219,59 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="script.js"></script>
 <script src="animations.js"></script>
+<script src="base/supabase.min.js"></script>
+<script src="base/config.js"></script>
+<script src="base/common.js"></script>
+<script>
+(async () => {
+  try {
+    const d = await PYROCORE.loadData();
+    const L = d.links || {};
+    const ICONS = { whatsapp: "WA", discord: "DC", instagram: "IG", tiktok: "TK", youtube: "YT", twitch: "TV" };
+
+    // Actualizar todos los elementos marcados con data-dyn
+    document.querySelectorAll("[data-dyn]").forEach(el => {
+      const key = el.dataset.dyn;
+      const textKey = el.dataset.dynText;
+      if (L[key]) el.href = L[key];
+      if (textKey && L[textKey]) el.textContent = L[textKey];
+    });
+
+    // Reconstruir iconos sociales del footer dinámicamente
+    const social = document.getElementById("ft-social");
+    if (social) {
+      const links = ["instagram","whatsapp","discord","tiktok","youtube","twitch"];
+      const html = links
+        .filter(k => L[k])
+        .map(k => `<a href="${L[k]}" target="_blank" title="${k}">${ICONS[k]}</a>`)
+        .join("");
+      if (html) social.innerHTML = html;
+    }
+    // Equipos
+    const teams = (d.teams || []).filter(t => t.active);
+    const grid = document.getElementById("teamsGrid");
+    const empty = document.getElementById("teamsEmpty");
+    if (grid && teams.length) {
+      grid.innerHTML = teams.map(t => {
+        const logo = `imagenes/equipos/${t.slug}.png`;
+        const ig = t.instagram ? (t.instagram.startsWith("@") ? t.instagram : "@" + t.instagram) : "";
+        const igUrl = ig ? `https://instagram.com/${ig.replace("@","")}` : null;
+        return `<div class="team-card">
+          <div class="tc-logo">
+            <img src="${logo}" alt="${t.name}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
+          </div>
+          <div class="tc-info">
+            <div class="tc-name">${t.name}</div>
+            ${ig ? `<a class="tc-ig" href="${igUrl}" target="_blank" rel="noopener">${ig}</a>` : ""}
+          </div>
+        </div>`;
+      }).join("");
+    } else if (grid) {
+      grid.innerHTML = "";
+      if (empty) empty.style.display = "block";
+    }
+  } catch(_) {}
+})();
+</script>
 </body>
 </html>

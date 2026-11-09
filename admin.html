@@ -372,7 +372,11 @@ input[data-bind][type=date]{color-scheme:dark}
     <button data-p="results">Resultados</button>
     <div class="menu-label">Sitio</div>
     <button data-p="sponsors">Sponsors</button>
+    <div class="menu-label">Staff</div>
+    <button data-p="teams">Equipos</button>
     <button data-p="users" id="menu-users">Usuarios</button>
+    <div class="menu-label">IA</div>
+    <button data-p="ai">Calculadora</button>
   </nav>
 
   <!-- Content area -->
@@ -544,6 +548,89 @@ input[data-bind][type=date]{color-scheme:dark}
       <div id="sp-list" class="grid-2"></div>
     </div>
 
+    <!-- ── EQUIPOS ── -->
+    <div class="admin-pane" id="p-teams">
+      <div class="sec-hdr">
+        <h2>Equipos <span>·</span> Roster</h2>
+        <button class="btn ghost sm" id="add-team">+ Agregar equipo</button>
+      </div>
+      <p class="hint" style="margin-bottom:16px">
+        Imágenes en <code style="background:var(--bg-hi);padding:2px 6px;border-radius:4px;font-size:.8rem">imagenes/equipos/{slug}.png</code>
+        — el slug debe coincidir exactamente con el nombre del archivo.
+      </p>
+      <div class="row-card" style="margin-bottom:16px">
+        <div class="row-head"><b>Importar desde CSV</b></div>
+        <p class="hint" style="margin-bottom:10px">
+          Formato: <code style="background:var(--bg-hi);padding:1px 5px;border-radius:3px;font-size:.78rem">nombre;ruta;instagram</code> — separado por punto y coma, con o sin cabecera.
+          El slug y la ruta de logo se generan automáticamente.
+        </p>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div class="field" style="margin:0;flex:1;min-width:200px">
+            <label>Archivo CSV</label>
+            <input type="file" id="teams-csv" accept=".csv,text/csv,text/plain">
+          </div>
+          <button class="btn ghost sm" id="teams-csv-load" style="margin-bottom:14px">Cargar CSV</button>
+        </div>
+        <div id="teams-csv-preview" hidden style="margin-top:12px">
+          <p class="hint" id="teams-csv-info"></p>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn sm" id="teams-csv-apply">Agregar a la lista →</button>
+            <button class="btn ghost sm" id="teams-csv-cancel">Cancelar</button>
+          </div>
+          <div class="table-wrap" style="margin-top:10px;max-height:200px;overflow-y:auto">
+            <table class="edit-table"><thead><tr><th>Nombre</th><th>Slug</th><th>Instagram</th></tr></thead>
+            <tbody id="teams-csv-body"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="edit-table" id="teams-table">
+          <thead><tr>
+            <th>Nombre</th>
+            <th>Slug (archivo)</th>
+            <th>País</th>
+            <th>Instagram</th>
+            <th style="text-align:center">Activo</th>
+            <th style="text-align:center">Logo</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="teams-body"><tr><td colspan="7" class="hint" style="padding:16px">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="row-card" style="margin-top:20px">
+        <div class="row-head"><b>Sorteo aleatorio de grupos</b></div>
+        <p class="hint">Distribuye equipos activos aleatoriamente. Los equipos marcados como <b>fijos</b> se ponen en su propio grupo sin sortear.</p>
+
+        <div style="display:flex;align-items:flex-end;gap:12px;margin-top:14px;flex-wrap:wrap">
+          <div class="field" style="margin:0;min-width:170px">
+            <label>Fase destino</label>
+            <select id="sort-phase"></select>
+          </div>
+          <div class="field" style="margin:0;width:90px">
+            <label>Equipos / grupo</label>
+            <input type="number" id="sort-size" value="12" min="2" max="24">
+          </div>
+          <div class="field" style="margin:0;min-width:170px">
+            <label>Nombre del grupo fijo</label>
+            <input type="text" id="sort-fixed-name" value="Fase Directa" placeholder="Fase Directa">
+          </div>
+          <button class="btn ghost sm" id="do-sort" style="margin-bottom:14px">Sortear →</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <p style="font-size:.75rem;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+            Equipos fijos (excluir del sorteo)
+            <span id="sort-fixed-count" style="color:var(--gold);margin-left:6px"></span>
+          </p>
+          <div id="sort-fixed-list" style="display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0"></div>
+        </div>
+
+        <p id="sort-preview" class="hint" style="margin-top:10px"></p>
+      </div>
+    </div>
+
     <!-- ── USUARIOS ── -->
     <div class="admin-pane" id="p-users">
       <div class="sec-hdr">
@@ -580,6 +667,86 @@ input[data-bind][type=date]{color-scheme:dark}
           </div>
           <button class="btn primary" type="submit" style="margin-top:6px">Crear usuario</button>
         </form>
+      </div>
+    </div>
+
+    <!-- ── IA CALCULADORA ── -->
+    <div class="admin-pane" id="p-ai">
+      <div class="sec-hdr">
+        <h2>Calculadora IA <span>·</span> Free Fire</h2>
+      </div>
+
+      <!-- API Key -->
+      <div class="row-card">
+        <div class="row-head"><b>API Key Anthropic</b></div>
+        <p class="hint" style="margin-bottom:12px">Se guarda en este navegador (localStorage). Modelo: claude-haiku-4-5.</p>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div class="field" style="margin:0;flex:1">
+            <label>Clave API (sk-ant-…)</label>
+            <input type="password" id="ai-apikey" placeholder="sk-ant-api03-…" autocomplete="off">
+          </div>
+          <button class="btn ghost sm" id="ai-save-key" style="margin-bottom:14px">Guardar</button>
+        </div>
+        <p id="ai-key-status" class="hint" style="margin-top:6px"></p>
+      </div>
+
+      <!-- Selector de grupo destino -->
+      <div class="row-card">
+        <div class="row-head"><b>Grupo destino</b></div>
+        <p class="hint" style="margin-bottom:12px">Selecciona el grupo que ya creaste. Los resultados de cada sala se acumularán ahí.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="margin:0;min-width:160px">
+            <label>Fase</label>
+            <select id="ai-phase"></select>
+          </div>
+          <div class="field" style="margin:0;min-width:160px">
+            <label>Grupo</label>
+            <select id="ai-group"></select>
+          </div>
+        </div>
+        <div id="ai-group-teams" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Cargar sala -->
+      <div class="row-card">
+        <div class="row-head"><b>Procesar sala</b></div>
+        <p class="hint" style="margin-bottom:12px">
+          Sube la captura del resultado de sala. La IA extrae los nombres y puntajes, luego los empareja con los equipos del grupo.
+          Puedes cargar varias salas una por una — los puntos se <b>acumulan</b>.
+        </p>
+        <div class="field">
+          <label>Captura(s) de esta sala</label>
+          <input type="file" id="ai-files" accept="image/*" multiple>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
+          <button class="btn" id="ai-process">Procesar con IA →</button>
+          <span id="ai-status" class="hint"></span>
+        </div>
+      </div>
+
+      <!-- Resultado + match -->
+      <div class="row-card" id="ai-result-card" hidden>
+        <div class="row-head">
+          <b>Resultado — empareja equipos</b>
+          <div class="toolbar">
+            <button class="btn ghost sm" id="ai-copy-json">Copiar JSON</button>
+            <button class="btn sm" id="ai-apply">Acumular en grupo →</button>
+          </div>
+        </div>
+        <p class="hint" style="margin-bottom:10px">
+          Columna <b>Equipo real</b>: selecciona el equipo del grupo que corresponde a cada fila extraída.
+          Los equipos sin match se omiten. Luego pulsa "Acumular en grupo".
+        </p>
+        <div class="table-wrap">
+          <table class="edit-table">
+            <thead><tr><th>Nombre captura</th><th>Equipo real (grupo)</th><th>Kills</th><th>PP</th><th>Penalty</th><th>Total</th></tr></thead>
+            <tbody id="ai-preview-body"></tbody>
+          </table>
+        </div>
+        <details style="margin-top:12px">
+          <summary class="hint" style="cursor:pointer">Ver JSON crudo</summary>
+          <pre id="ai-json-out" style="margin-top:8px;padding:10px;background:var(--bg-hi);border-radius:var(--rad);font-size:.72rem;overflow:auto;max-height:260px;white-space:pre-wrap"></pre>
+        </details>
       </div>
     </div>
 

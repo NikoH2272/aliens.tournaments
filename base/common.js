@@ -29,13 +29,19 @@ const PYROCORE = (() => {
 
   const must = ({ data, error }) => { if (error) throw new Error(error.message); return data; };
 
+  const teamLogo = (teams, name) => {
+    const t = (teams || []).find((x) => x.name.toLowerCase() === (name || "").toLowerCase());
+    return t ? `imagenes/equipos/${t.slug}.png` : null;
+  };
+
   async function fetchFromSupabase(scheduleQuery) {
-    const [settings, schedule, groups, rows, sponsors] = await Promise.all([
+    const [settings, schedule, groups, rows, sponsors, teams] = await Promise.all([
       sb.from("at_settings").select("*").eq("id", 1).maybeSingle().then(must),
       (scheduleQuery || sb.from("at_schedule").select("*").order("position")).then(must),
       sb.from("at_result_groups").select("*").order("position").then(must),
       sb.from("at_result_rows").select("*").order("position").then(must),
       sb.from("at_sponsors").select("*").order("position").then(must),
+      sb.from("at_teams").select("*").order("name").then(must),
     ]);
     const fmt = (d) => (d ? new Date(d).toLocaleString("es", { dateStyle: "medium", timeStyle: "short" }) : "");
     return {
@@ -52,6 +58,7 @@ const PYROCORE = (() => {
           .map((r) => ({ id: r.id, team: r.team, kills: r.kills, placement: r.placement, penalty: r.penalty })),
       })),
       sponsors: sponsors.map((s) => ({ id: s.id, name: s.name, logo: s.logo_url, url: s.url })),
+      teams: teams.map((t) => ({ id: t.id, name: t.name, slug: t.slug, country: t.country, active: t.active, instagram: t.instagram || "" })),
     };
   }
 
@@ -146,5 +153,5 @@ const PYROCORE = (() => {
     };
   };
 
-  return { DEFAULT_RULES, getRules, sb, must, fetchFromSupabase, ICONS, esc, safeUrl, safeImg, loadData, total, sortRows, hasTeam, generalRows, groupTag, PHASES, STATES, localTimes };
+  return { DEFAULT_RULES, getRules, sb, must, fetchFromSupabase, ICONS, esc, safeUrl, safeImg, loadData, total, sortRows, hasTeam, generalRows, groupTag, PHASES, STATES, localTimes, teamLogo };
 })();

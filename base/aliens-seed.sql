@@ -80,6 +80,17 @@ create table if not exists at_sponsors (
   position   integer not null default 0
 );
 
+create table if not exists at_teams (
+  id         uuid        primary key default gen_random_uuid(),
+  name       text        not null unique,
+  slug       text        not null unique,
+  country    text        not null default '',
+  active     boolean     not null default true,
+  instagram  text        not null default '',
+  created_at timestamptz not null default now()
+);
+alter table at_teams add column if not exists instagram text not null default '';
+
 -- ── RLS ───────────────────────────────────────────────────────
 
 alter table at_settings       enable row level security;
@@ -89,6 +100,7 @@ alter table at_schedule       enable row level security;
 alter table at_result_groups  enable row level security;
 alter table at_result_rows    enable row level security;
 alter table at_sponsors       enable row level security;
+alter table at_teams          enable row level security;
 
 -- Lectura pública
 drop policy if exists "at_pub_settings"  on at_settings;
@@ -96,12 +108,14 @@ drop policy if exists "at_pub_schedule"  on at_schedule;
 drop policy if exists "at_pub_rg"        on at_result_groups;
 drop policy if exists "at_pub_rr"        on at_result_rows;
 drop policy if exists "at_pub_sponsors"  on at_sponsors;
+drop policy if exists "at_pub_teams"     on at_teams;
 
 create policy "at_pub_settings"  on at_settings      for select using (true);
 create policy "at_pub_schedule"  on at_schedule      for select using (visible = true);
 create policy "at_pub_rg"        on at_result_groups for select using (true);
 create policy "at_pub_rr"        on at_result_rows   for select using (true);
 create policy "at_pub_sponsors"  on at_sponsors      for select using (true);
+create policy "at_pub_teams"     on at_teams         for select using (true);
 
 -- ── Funciones con prefijo at_ ─────────────────────────────────
 
@@ -279,6 +293,33 @@ begin
     end if;
     i := i + 1;
   end loop;
+
+  -- teams: upsert existentes, eliminar removidos
+  if p_data ? 'teams' then
+    for v_s in select * from jsonb_array_elements(p_data->'teams') loop
+      insert into at_teams(id, name, slug, country, active, instagram)
+      values (
+        coalesce((v_s->>'id')::uuid, gen_random_uuid()),
+        trim(coalesce(v_s->>'name','')),
+        lower(trim(coalesce(v_s->>'slug',''))),
+        coalesce(v_s->>'country',''),
+        coalesce((v_s->>'active')::boolean, true),
+        coalesce(v_s->>'instagram','')
+      )
+      on conflict(id) do update set
+        name      = trim(coalesce(v_s->>'name','')),
+        slug      = lower(trim(coalesce(v_s->>'slug',''))),
+        country   = coalesce(v_s->>'country',''),
+        active    = coalesce((v_s->>'active')::boolean, true),
+        instagram = coalesce(v_s->>'instagram','');
+    end loop;
+    delete from at_teams
+    where id not in (
+      select (x->>'id')::uuid
+      from jsonb_array_elements(p_data->'teams') x
+      where (x->>'id') is not null
+    );
+  end if;
 end; $$;
 
 -- Gestión de usuarios

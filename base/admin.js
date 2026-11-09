@@ -51,9 +51,12 @@
     img.src = URL.createObjectURL(file);
   });
 
+  const toSlug = (s) => s.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
   const normalize = (d) => {
     d.tournament ??= {}; d.links ??= {};
-    d.prizes ??= []; d.schedule ??= []; d.results ??= []; d.sponsors ??= [];
+    d.prizes ??= []; d.schedule ??= []; d.results ??= []; d.sponsors ??= []; d.teams ??= [];
+    d.teams.forEach((t) => { t.instagram ??= ""; });
     d.tournament.state = STATES[d.tournament.state] ? d.tournament.state : "abierto";
     ["rulesText", "clarificationsText", "prohibitedText", "rulesNote"].forEach((k) => {
       if (typeof d.tournament[k] !== "string") d.tournament[k] = PYROCORE.DEFAULT_RULES[k];
@@ -133,6 +136,7 @@
     document.querySelectorAll("#menu button").forEach((x) => x.classList.toggle("active", x === b));
     document.querySelectorAll(".admin-pane").forEach((p) => p.classList.toggle("active", p.id === `p-${b.dataset.p}`));
     if (b.dataset.p === "users") renderUsers();
+    if (b.dataset.p === "teams") renderTeams();
   });
 
   const control = (path, opts = {}) => opts.select
@@ -356,7 +360,127 @@
     } catch (err) { toast(err.message, true); }
   });
 
-  function renderAll() { renderGeneral(); renderPrizes(); renderSchedule(); renderResults(); renderSponsors(); }
+  function renderTeams() {
+    const tbody = $("#teams-body");
+    if (!tbody) return;
+    if (!data.teams.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="hint" style="padding:16px">Sin equipos registrados. Pulsa + Agregar equipo o importa un CSV.</td></tr>`;
+    } else {
+      tbody.innerHTML = data.teams.map((t, i) => `
+        <tr data-ti="${i}">
+          <td><input data-bind="teams.${i}.name" value="${esc(t.name)}" placeholder="Nombre del equipo" style="min-width:140px"></td>
+          <td><input data-bind="teams.${i}.slug" value="${esc(t.slug)}" placeholder="slug-del-equipo" style="min-width:120px" data-slugfor="${i}"></td>
+          <td><input data-bind="teams.${i}.country" value="${esc(t.country)}" placeholder="MX" style="max-width:60px"></td>
+          <td><input data-bind="teams.${i}.instagram" value="${esc(t.instagram || "")}" placeholder="@usuario" style="min-width:120px"></td>
+          <td style="text-align:center">
+            <label class="switch">
+              <input type="checkbox" data-teamactive="${i}" ${t.active ? "checked" : ""}>
+              <span>${t.active ? "Sí" : "No"}</span>
+            </label>
+          </td>
+          <td style="text-align:center">
+            ${t.slug ? `<img src="imagenes/equipos/${esc(t.slug)}.png" alt="${esc(t.name)}" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:var(--bg-hi)" onerror="this.style.opacity='.25'">` : `<span class="hint">—</span>`}
+          </td>
+          <td><button class="x" data-delteam="${i}" title="Eliminar equipo">✕</button></td>
+        </tr>`).join("");
+    }
+    const sortPhase = $("#sort-phase");
+    if (sortPhase) {
+      const phases = phasesOf(data.results);
+      sortPhase.innerHTML = phases.map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("") || `<option value="">Sin fases</option>`;
+    }
+    // render fixed-teams checklist
+    const fixedList = $("#sort-fixed-list");
+    if (fixedList) {
+      const active = data.teams.filter((t) => t.active && t.name.trim());
+      // preserve previously checked state
+      const prevChecked = new Set([...fixedList.querySelectorAll("input:checked")].map((el) => el.value));
+      fixedList.innerHTML = active.length
+        ? active.map((t) => `
+            <label style="display:flex;align-items:center;gap:5px;background:var(--bg-hi);border:1px solid var(--border);border-radius:4px;padding:4px 9px;cursor:pointer;font-size:.78rem;user-select:none">
+              <input type="checkbox" class="sort-fixed-cb" value="${esc(t.name)}" ${prevChecked.has(t.name) ? "checked" : ""} style="width:auto;margin:0">
+              ${esc(t.name)}
+            </label>`).join("")
+        : `<span class="hint">Sin equipos activos.</span>`;
+      // wire counter update
+      fixedList.querySelectorAll(".sort-fixed-cb").forEach((cb) => {
+        cb.addEventListener("change", updateSortPreview);
+      });
+    }
+    updateSortPreview();
+  }
+
+  function updateSortPreview() {
+    const fixed = [...document.querySelectorAll(".sort-fixed-cb:checked")].map((el) => el.value);
+    const active = data?.teams.filter((t) => t.active && t.name.trim()) || [];
+    const toSort = active.filter((t) => !fixed.includes(t.name));
+    const countEl = $("#sort-fixed-count");
+    if (countEl) countEl.textContent = fixed.length ? `${fixed.length} fijos seleccionados` : "";
+    const preview = $("#sort-preview");
+    if (preview) {
+      if (!active.length) { preview.textContent = "No hay equipos activos aún."; return; }
+      const size = Number($("#sort-size")?.value) || 12;
+      const groups = toSort.length ? Math.ceil(toSort.length / size) : 0;
+      let msg = `${toSort.length} equipos al sorteo`;
+      if (groups) msg += ` → ${groups} grupo${groups > 1 ? "s" : ""} de ~${size}`;
+      if (fixed.length) msg += ` · ${fixed.length} fijos en su propio grupo`;
+      preview.textContent = msg + ".";
+    }
+  }
+
+  // ── CSV import para equipos ──────────────────────────────────
+  let csvParsed = [];
+
+  const parseCSV = (text) => {
+    return text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
+      const sep = l.includes(";") ? /;/ : /,/;
+      const cols = l.split(sep).map((c) => c.trim().replace(/^["']|["']$/g, ""));
+      const name = cols[0] || "";
+      // 3-col: nombre;ruta;instagram — 2-col: nombre;instagram
+      const hasRuta = cols.length >= 3;
+      const ruta = hasRuta ? cols[1].replace(/\.png$/i, "") : "";
+      const instagram = hasRuta ? cols[2] || "" : cols[1] || "";
+      return { name, ruta, instagram };
+    }).filter((r) => r.name && r.name.toLowerCase() !== "nombre");
+  };
+
+  $("#teams-csv-load")?.addEventListener("click", () => {
+    const file = $("#teams-csv")?.files?.[0];
+    if (!file) return toast("Selecciona un archivo CSV primero", true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      csvParsed = parseCSV(e.target.result).map((r) => ({ ...r, slug: toSlug(r.name) }));
+      if (!csvParsed.length) return toast("No se encontraron filas válidas en el CSV", true);
+      $("#teams-csv-info").textContent = `${csvParsed.length} equipos listos para importar.`;
+      $("#teams-csv-body").innerHTML = csvParsed.map((r) => `<tr><td>${esc(r.name)}</td><td>${esc(r.slug)}</td><td>${esc(r.instagram)}</td></tr>`).join("");
+      $("#teams-csv-preview").hidden = false;
+    };
+    reader.readAsText(file);
+  });
+
+  $("#teams-csv-apply")?.addEventListener("click", () => {
+    if (!csvParsed.length) return;
+    if (!data?.teams) return toast("Los datos aún no están cargados, espera un momento", true);
+    let added = 0, dupes = 0;
+    csvParsed.forEach((r) => {
+      const exists = data.teams.find((t) => t.name.toLowerCase() === r.name.toLowerCase());
+      if (exists) { dupes++; return; }
+      data.teams.push({ id: uuid(), name: r.name, slug: r.slug, country: "", active: true, instagram: r.instagram });
+      added++;
+    });
+    csvParsed = [];
+    $("#teams-csv-preview").hidden = true;
+    renderTeams(); markDirty();
+    toast(`${added} equipos importados${dupes ? `, ${dupes} ya existían (omitidos)` : ""}. Pulsa Guardar.`);
+  });
+
+  $("#teams-csv-cancel")?.addEventListener("click", () => {
+    csvParsed = [];
+    $("#teams-csv-preview").hidden = true;
+  });
+  // ── end CSV import ───────────────────────────────────────────
+
+  function renderAll() { renderGeneral(); renderPrizes(); renderSchedule(); renderResults(); renderSponsors(); renderTeams(); }
 
   function parseTeams(text) {
     return text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
@@ -416,6 +540,19 @@
     if (!p || !data || e.target.type === "radio") return;
     const v = e.target.type === "number" ? (e.target.value === "" ? 0 : Number(e.target.value)) : e.target.value;
     set(p, v);
+    // auto-slug when team name changes and slug is empty or was auto-generated
+    if (p.match(/^teams\.\d+\.name$/)) {
+      const idx = +p.split(".")[1];
+      const slugEl = document.querySelector(`[data-slugfor="${idx}"]`);
+      if (slugEl && (!slugEl.value || slugEl.value === toSlug(slugEl.dataset.prev || ""))) {
+        const s = toSlug(v);
+        slugEl.value = s;
+        set(`teams.${idx}.slug`, s);
+        const pathEl = slugEl.closest("tr")?.querySelector(".hint");
+        if (pathEl) pathEl.textContent = s ? `imagenes/equipos/${s}.webp` : "—";
+      }
+      slugEl && (slugEl.dataset.prev = v);
+    }
     const m = p.match(/^results\.(\d+)\.rows\.(\d+)\./);
     if (m) {
       touch(m[1]);
@@ -438,6 +575,11 @@
     if (!data) return;
     if (el.dataset.bind && (el.tagName === "SELECT" || el.type === "radio")) { set(el.dataset.bind, el.value); markDirty(); }
     if (el.dataset.bind?.endsWith(".qualify")) renderResults();
+    if (el.dataset.teamactive !== undefined) {
+      data.teams[el.dataset.teamactive].active = el.checked;
+      renderTeams(); markDirty();
+      return;
+    }
     if (el.dataset.visible !== undefined) {
       data.schedule[el.dataset.visible].visible = el.checked;
       renderSchedule(); markDirty();
@@ -479,6 +621,55 @@
       if (!confirm(`¿Eliminar el usuario ${d.name}?`)) return;
       try { await rpc("at_staff_delete_user", { p_id: d.deluser }); toast("Usuario eliminado"); renderUsers(); }
       catch (err) { toast(err.message, true); }
+      return;
+    }
+    if (d.delteam !== undefined) {
+      const i = +d.delteam;
+      if (!confirm(`¿Eliminar el equipo "${data.teams[i]?.name || "sin nombre"}"?`)) return;
+      data.teams.splice(i, 1);
+      renderTeams(); markDirty();
+      return;
+    }
+    if (t.id === "do-sort") {
+      const all = data.teams.filter((x) => x.active && x.name.trim());
+      if (!all.length) return toast("No hay equipos activos registrados", true);
+      const phase = $("#sort-phase")?.value;
+      if (!phase) return toast("Selecciona una fase primero", true);
+      const size = Number($("#sort-size")?.value) || 12;
+      const fixedNames = new Set([...document.querySelectorAll(".sort-fixed-cb:checked")].map((el) => el.value));
+      const fixed = all.filter((x) => fixedNames.has(x.name));
+      const toSort = all.filter((x) => !fixedNames.has(x.name));
+      const totalGroups = (toSort.length ? Math.ceil(toSort.length / size) : 0) + (fixed.length ? 1 : 0);
+      if (!confirm(`¿Crear ${totalGroups} grupo(s) en "${phase}"?${fixed.length ? `\n• ${fixed.length} equipos fijos → 1 grupo propio` : ""}\n• ${toSort.length} equipos sorteados → ${Math.ceil(toSort.length / size) || 0} grupos de ~${size}`)) return;
+      const existing = data.results.filter((g) => g.phase === phase && g.kind !== "general");
+      if (existing.length && !confirm(`"${phase}" ya tiene ${existing.length} grupos. ¿Reemplazar?`)) return;
+      data.results = data.results.filter((g) => g.phase !== phase || g.kind === "general");
+      let gNum = 0;
+      // fixed group first (if any)
+      if (fixed.length) {
+        const fixedGroupName = ($("#sort-fixed-name")?.value || "").trim() || "Fase Directa";
+        const rows = fixed.map((x) => ({ id: uuid(), team: x.name, kills: 0, placement: 0, penalty: 0 }));
+        const gId = uuid();
+        data.results.push({ id: gId, phase, kind: "grupo", qualify: 0, updated: "", title: fixedGroupName, rows });
+        touchedGroups.add(gId);
+        gNum++;
+      }
+      // random groups
+      const shuffled = [...toSort].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < shuffled.length; i += size) {
+        const batch = shuffled.slice(i, i + size);
+        const title = `Grupo ${String.fromCharCode(65 + gNum - (fixed.length ? 1 : 0))}`;
+        const rows = batch.map((x) => ({ id: uuid(), team: x.name, kills: 0, placement: 0, penalty: 0 }));
+        while (rows.length < size) rows.push({ id: uuid(), team: "", kills: 0, placement: 0, penalty: 0 });
+        const gId = uuid();
+        data.results.push({ id: gId, phase, kind: "grupo", qualify: 0, updated: "", title, rows });
+        touchedGroups.add(gId);
+        gNum++;
+      }
+      renderResults(); markDirty();
+      const sortedGroups = gNum - (fixed.length ? 1 : 0);
+      toast(`${gNum} grupos en "${phase}"${fixed.length ? ` · 1 fijo (${fixed.length} equipos)` : ""}${sortedGroups ? ` · ${sortedGroups} sorteados` : ""}. Pulsa Guardar.`);
+      document.querySelector("#menu button[data-p='results']")?.click();
       return;
     }
     if (!data) return;
@@ -546,7 +737,261 @@
       data.sponsors[d.clearlogo].logo = "";
       renderSponsors(); markDirty();
     }
+    if (t.id === "ai-save-key") {
+      const val = $("#ai-apikey")?.value.trim();
+      if (!val) return toast("Escribe la clave primero", true);
+      saveAiKey(val);
+      $("#ai-key-status").textContent = "Clave guardada ✓";
+      toast("API Key guardada");
+    }
+    if (t.id === "ai-copy-json") {
+      navigator.clipboard.writeText(JSON.stringify(aiRows, null, 2)).then(() => toast("JSON copiado")).catch(() => toast("No se pudo copiar", true));
+    }
+    if (t.id === "ai-apply") {
+      if (!aiRows.length) return toast("No hay resultados para aplicar", true);
+      const groupId = $("#ai-group")?.value;
+      const gi = data?.results.findIndex((g) => g.id === groupId);
+      if (!data || gi < 0) return toast("Selecciona un grupo destino válido", true);
+      // collect matched rows from preview selects
+      const tbody = $("#ai-preview-body");
+      let applied = 0;
+      tbody?.querySelectorAll("tr").forEach((tr, i) => {
+        const realName = tr.querySelector(`[data-aicol="match"]`)?.value || "";
+        if (!realName) return; // omitir
+        const rowIdx = data.results[gi].rows.findIndex((r) => (r.team || "").toLowerCase() === realName.toLowerCase());
+        if (rowIdx < 0) return;
+        const kills = Number(tr.querySelector(`[data-aicol="kills"]`)?.value) || 0;
+        const placement = Number(tr.querySelector(`[data-aicol="placement"]`)?.value) || 0;
+        const penalty = Number(tr.querySelector(`[data-aicol="penalty"]`)?.value) || 0;
+        // accumulate
+        data.results[gi].rows[rowIdx].kills = (Number(data.results[gi].rows[rowIdx].kills) || 0) + kills;
+        data.results[gi].rows[rowIdx].placement = (Number(data.results[gi].rows[rowIdx].placement) || 0) + placement;
+        data.results[gi].rows[rowIdx].penalty = (Number(data.results[gi].rows[rowIdx].penalty) || 0) + penalty;
+        applied++;
+      });
+      if (!applied) return toast("Ningún equipo emparejado — revisa los selects de 'Equipo real'", true);
+      touchedGroups.add(data.results[gi].id);
+      renderResults(); markDirty(); renderAiGroupTeams();
+      toast(`${applied} equipos acumulados en "${data.results[gi].title}". Pulsa Guardar.`);
+    }
   });
+
+  document.addEventListener("input", (e) => {
+    if (e.target.id === "sort-size") updateSortPreview();
+  }, true);
+
+  $("#add-team").addEventListener("click", () => {
+    data.teams.push({ id: uuid(), name: "", slug: "", country: "", active: true, instagram: "" });
+    renderTeams(); markDirty();
+    // foco en el último nombre
+    const rows = document.querySelectorAll("#teams-body tr");
+    rows[rows.length - 1]?.querySelector("input")?.focus();
+  });
+
+  // ── IA Calculator ──────────────────────────────────────────
+  const AI_KEY_STORAGE = "prc_ai_key";
+  let aiRows = [];
+
+  const loadAiKey = () => { try { return localStorage.getItem(AI_KEY_STORAGE) || ""; } catch(_) { return ""; } };
+  const saveAiKey = (k) => { try { localStorage.setItem(AI_KEY_STORAGE, k); } catch(_) {} };
+
+  // Simple fuzzy match: find best team name in a list for a given extracted name
+  const levenshtein = (a, b) => {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    return dp[m][n];
+  };
+  const fuzzyMatch = (extracted, candidates) => {
+    const low = extracted.toLowerCase();
+    // exact match first
+    const exact = candidates.find((c) => c.toLowerCase() === low);
+    if (exact) return exact;
+    // then contains
+    const contains = candidates.find((c) => c.toLowerCase().includes(low) || low.includes(c.toLowerCase()));
+    if (contains) return contains;
+    // then levenshtein (threshold = 40% of longer string)
+    let best = null, bestD = Infinity;
+    candidates.forEach((c) => {
+      const d = levenshtein(low, c.toLowerCase());
+      if (d < bestD) { bestD = d; best = c; }
+    });
+    const threshold = Math.max(low.length, (best || "").length) * 0.4;
+    return bestD <= threshold ? best : null;
+  };
+
+  // Update group teams display
+  const renderAiGroupTeams = () => {
+    const gi = data?.results.findIndex((g) => g.id === $("#ai-group")?.value);
+    const box = $("#ai-group-teams");
+    if (!box) return;
+    if (!data || gi === undefined || gi < 0) { box.innerHTML = ""; return; }
+    const g = data.results[gi];
+    const filled = g.rows.filter((r) => (r.team || "").trim());
+    if (!filled.length) { box.innerHTML = `<p class="hint">Este grupo no tiene equipos aún.</p>`; return; }
+    box.innerHTML = `<p class="hint" style="margin-bottom:6px">${filled.length} equipos en el grupo · scores actuales:</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${filled.map((r) => {
+        const tot = (Number(r.kills)||0)+(Number(r.placement)||0)-(Number(r.penalty)||0);
+        return `<span style="background:var(--bg-hi);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:.72rem">${esc(r.team)} · <b>${tot}</b></span>`;
+      }).join("")}</div>`;
+  };
+
+  const populateAiSelectors = () => {
+    if (!data) return;
+    const aiPhase = $("#ai-phase");
+    if (!aiPhase) return;
+    const phases = phasesOf(data.results);
+    aiPhase.innerHTML = phases.map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("") || `<option value="">Sin fases</option>`;
+    // trigger group update
+    aiPhase.dispatchEvent(new Event("change"));
+  };
+
+  $("#ai-phase")?.addEventListener("change", () => {
+    const phase = $("#ai-phase")?.value;
+    const aiGroup = $("#ai-group");
+    if (!aiGroup || !data) return;
+    const groups = data.results.filter((g) => g.phase === phase && g.kind !== "general");
+    aiGroup.innerHTML = groups.map((g) => `<option value="${esc(g.id)}">${esc(g.title)}</option>`).join("") || `<option value="">Sin grupos en esta fase</option>`;
+    renderAiGroupTeams();
+  });
+
+  $("#ai-group")?.addEventListener("change", renderAiGroupTeams);
+
+  document.querySelector("#menu button[data-p='ai']")?.addEventListener("click", () => {
+    populateAiSelectors();
+    const keyEl = $("#ai-apikey");
+    if (keyEl) {
+      const k = loadAiKey();
+      if (k) { keyEl.value = k; $("#ai-key-status").textContent = "Clave cargada ✓"; }
+    }
+    $("#ai-result-card").hidden = true;
+  });
+
+  $("#ai-process")?.addEventListener("click", async () => {
+    const apiKey = loadAiKey() || $("#ai-apikey")?.value.trim();
+    if (!apiKey) return toast("Guarda tu API Key primero", true);
+    const files = $("#ai-files")?.files;
+    if (!files || !files.length) return toast("Selecciona al menos una imagen", true);
+    const groupId = $("#ai-group")?.value;
+    const gi = data?.results.findIndex((g) => g.id === groupId);
+    if (!data || gi < 0) return toast("Selecciona un grupo destino válido", true);
+    const groupTeams = data.results[gi].rows.map((r) => r.team).filter((t) => (t || "").trim());
+
+    const btn = $("#ai-process");
+    btn.disabled = true;
+    const status = $("#ai-status");
+    status.textContent = "Leyendo imágenes…";
+
+    try {
+      const toBase64 = (file) => new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result.split(",")[1]);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+
+      const images = [];
+      for (const f of files) {
+        const b64 = await toBase64(f);
+        images.push({ type: "image", source: { type: "base64", media_type: f.type || "image/png", data: b64 } });
+      }
+
+      status.textContent = "Enviando a Claude Haiku…";
+
+      const teamHint = groupTeams.length
+        ? `\n\nLos equipos registrados en este grupo son: ${groupTeams.map((t) => `"${t}"`).join(", ")}. Usa exactamente esos nombres si los reconoces.`
+        : "";
+
+      const systemPrompt = `Eres un asistente especializado en extraer resultados de torneos de Free Fire. Extraes tablas de resultados de capturas de pantalla en JSON estructurado.`;
+
+      const userPrompt = `Analiza ${images.length > 1 ? "estas capturas" : "esta captura"} de sala de Free Fire y extrae la tabla de resultados.
+
+Devuelve ÚNICAMENTE un array JSON con estos campos exactos:
+- "team": nombre del equipo tal como aparece en la captura (string)
+- "placement": puntos de posición/placement (número entero)
+- "kills": eliminaciones totales del equipo (número entero)
+- "penalty": sanciones (número entero, 0 si no hay)
+${teamHint}
+
+Solo el JSON array, sin texto adicional.`;
+
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5",
+          max_tokens: 2048,
+          system: systemPrompt,
+          messages: [{ role: "user", content: [...images, { type: "text", text: userPrompt }] }],
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${resp.status}`);
+      }
+
+      const result = await resp.json();
+      const text = result.content?.[0]?.text || "";
+      const match = text.match(/\[[\s\S]*\]/);
+      if (!match) throw new Error("No se encontró JSON en la respuesta");
+
+      aiRows = JSON.parse(match[0]);
+      if (!Array.isArray(aiRows)) throw new Error("Respuesta no es un array");
+
+      // fuzzy match each extracted row to group's team names
+      const tbody = $("#ai-preview-body");
+      const matchedTeams = aiRows.map((r) => fuzzyMatch(r.team || "", groupTeams));
+
+      tbody.innerHTML = aiRows.map((r, i) => {
+        const matched = matchedTeams[i] || "";
+        const tot = (Number(r.kills)||0) + (Number(r.placement)||0) - (Number(r.penalty)||0);
+        const opts = ["", ...groupTeams].map((t) => `<option value="${esc(t)}" ${t === matched ? "selected" : ""}>${t ? esc(t) : "— omitir —"}</option>`).join("");
+        return `<tr>
+          <td style="color:var(--muted);font-size:.8rem">${esc(r.team || "")}</td>
+          <td><select data-airow="${i}" data-aicol="match" style="min-width:160px">${opts}</select></td>
+          <td><input type="number" min="0" style="max-width:70px" data-airow="${i}" data-aicol="kills" value="${Number(r.kills)||0}"></td>
+          <td><input type="number" min="0" style="max-width:70px" data-airow="${i}" data-aicol="placement" value="${Number(r.placement)||0}"></td>
+          <td><input type="number" min="0" style="max-width:70px" data-airow="${i}" data-aicol="penalty" value="${Number(r.penalty)||0}"></td>
+          <td class="total">${tot}</td>
+        </tr>`;
+      }).join("");
+
+      // wire live edits
+      tbody.querySelectorAll("[data-airow]").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const idx = +inp.dataset.airow;
+          const col = inp.dataset.aicol;
+          if (col === "match") { matchedTeams[idx] = inp.value; return; }
+          aiRows[idx][col] = Number(inp.value) || 0;
+          const row = inp.closest("tr");
+          row.querySelector(".total").textContent = (Number(aiRows[idx].kills)||0)+(Number(aiRows[idx].placement)||0)-(Number(aiRows[idx].penalty)||0);
+          $("#ai-json-out").textContent = JSON.stringify(aiRows, null, 2);
+        });
+        if (inp.tagName === "SELECT") inp.addEventListener("change", () => { matchedTeams[+inp.dataset.airow] = inp.value; });
+      });
+
+      $("#ai-json-out").textContent = JSON.stringify(aiRows, null, 2);
+      $("#ai-result-card").hidden = false;
+      const autoMatched = matchedTeams.filter(Boolean).length;
+      status.textContent = `✓ ${aiRows.length} extraídos, ${autoMatched} emparejados automáticamente`;
+
+    } catch (err) {
+      status.textContent = "Error: " + err.message;
+      toast("Error IA: " + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ── end IA Calculator ──────────────────────────────────────
 
   $("#add-prize").addEventListener("click", () => {
     data.prizes.push({ place: `${data.prizes.length + 1}° Lugar`, amount: "" });
@@ -591,7 +1036,7 @@
       toast("¡Cambios guardados!");
     } catch (err) {
       toast("Error al guardar: " + err.message, true);
-      if (expired(err)) { setToken(null); showLogin(err.message); }
+      if (expired(err)) { redirectToLogin(); }
     } finally {
       btn.disabled = false; btn.textContent = "Guardar cambios";
     }
