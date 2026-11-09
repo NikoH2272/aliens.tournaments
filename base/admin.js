@@ -238,7 +238,7 @@
           ${rows.length ? `<ol class="gen-grid admin-gen">${rows.map((row, k) => (dupOnly.has(phase) && !row.dup) ? "" : `
             <li class="${k < q ? "qualified" : ""} ${k === q - 1 ? "cutline" : ""} ${k < 3 ? `top${k + 1}` : ""} ${row.dup ? "dup" : ""}">
               <span class="gen-pos">${k + 1}</span>
-              ${(() => { const lp = PYROCORE.teamLogo(data.teams, row.name || row.team); return lp ? `<img src="${lp}" style="width:20px;height:20px;object-fit:contain;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'">` : ""; })()}
+              ${(() => { const lp = PYROCORE.teamLogo(data.teams, row.name || row.team); return `<img src="${lp || "logo.png"}" style="width:20px;height:20px;object-fit:contain;border-radius:3px;flex-shrink:0" onerror="this.src='logo.png'">`;})()}
               <span class="gen-team"><b>${esc(row.team)}</b>
                 <small>${esc(row.group)} · K ${Number(row.kills) || 0} · P.P ${Number(row.placement) || 0}${row.penalty ? ` · S -${Number(row.penalty)}` : ""}</small></span>
               <span class="gen-pts">${total(row)}</span>
@@ -285,7 +285,7 @@
           <tbody>${(r.rows || []).map((row, k) => {
             const lp = PYROCORE.teamLogo(data.teams, row.team);
             return `<tr class="${ranked.has(row) ? "qualified" : ""}">
-            <td class="team-logo-cell"><img class="row-team-logo" src="${lp || ""}" alt="" ${lp ? "" : 'style="display:none"'} onerror="this.style.display='none'"><input data-bind="results.${i}.rows.${k}.team" value="${esc(row.team)}" placeholder="Equipo ${k + 1}"></td>
+            <td class="team-logo-cell"><img class="row-team-logo" src="${lp || "logo.png"}" alt="" onerror="this.src='logo.png'"><input data-bind="results.${i}.rows.${k}.team" value="${esc(row.team)}" placeholder="Equipo ${k + 1}"></td>
             <td><input data-bind="results.${i}.rows.${k}.kills" type="number" min="0" value="${Number(row.kills) || 0}"></td>
             <td><input data-bind="results.${i}.rows.${k}.placement" type="number" min="0" value="${Number(row.placement) || 0}"></td>
             <td><input data-bind="results.${i}.rows.${k}.penalty" type="number" min="0" value="${Number(row.penalty) || 0}"></td>

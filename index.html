@@ -321,7 +321,7 @@
         return `<div class="team-card" data-slug="${esc(t.slug)}" data-name="${esc(t.name)}" role="button" tabindex="0" title="Ver bienvenida de ${esc(t.name)}">
           <div class="tc-logo-wrap">
             <div class="tc-logo">
-              <img src="${logo}" alt="${esc(t.name)}" loading="lazy" onerror="this.parentElement.classList.add('tc-no-logo')">
+              <img src="${logo}" alt="${esc(t.name)}" loading="lazy" onerror="this.src='logo.png'">
             </div>
           </div>
           <div class="tc-info">
@@ -364,7 +364,7 @@
       function logoImg(name, qualified) {
         const path = teamLogo(teamsArr, name);
         if (!path) return `<span class="rg-no-logo"></span>`;
-        return `<img class="rg-logo ${qualified ? "" : "eliminated"}" src="${esc(path)}" alt="${esc(name)}" loading="lazy" onerror="this.style.visibility='hidden'">`;
+        return `<img class="rg-logo ${qualified ? "" : "eliminated"}" src="${esc(path)}" alt="${esc(name)}" loading="lazy" onerror="this.src='logo.png'">`;
       }
 
       function renderPhase(phase) {
