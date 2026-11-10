@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
-<link rel="stylesheet" href="styles.css?v=20261110-3">
+<link rel="stylesheet" href="styles.css?v=20261110-4">
 </head>
 <body>
 
@@ -287,18 +287,20 @@ document.getElementById('download-rules').addEventListener('click', async (event
     // Premios
     const prizesGrid = document.getElementById("prizesGrid");
     if (prizesGrid && d.prizes?.length) {
-      const PRIZE_ICONS = [
-        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/><path d="M12 17v4"/><path d="M8 21h8"/><path d="M6 2h12v7a6 6 0 0 1-12 0z"/></svg>`,
-        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="15" r=".5" fill="currentColor"/><path d="M8 20l4-4 4 4"/></svg>`,
-        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8 20l4-4 4 4"/></svg>`,
-      ];
-      prizesGrid.innerHTML = d.prizes.map((p, i) => `
-        <div class="prize-card ${i === 0 ? "first" : i === 1 ? "second" : i === 2 ? "third" : ""}">
-          <div class="prize-icon">${PRIZE_ICONS[i] || PRIZE_ICONS[0]}</div>
-          <div class="prize-place">${esc(p.place)}</div>
-          ${p.reason ? `<div class="prize-reason">${esc(p.reason)}</div>` : ""}
-          <div class="prize-amount">${esc(p.amount)}</div>
-        </div>`).join("");
+      const trophy = `<svg viewBox="0 0 100 112" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M27 12h46v31c0 19-10 30-23 30S27 62 27 43V12ZM27 22H12v14c0 15 7 23 20 23M73 22h15v14c0 15-7 23-20 23M50 73v22M32 102h36M38 95h24"/></svg>`;
+      const mvpIcon = `<svg viewBox="0 0 100 112" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" aria-hidden="true"><path d="m50 12 12 25 28 4-20 20 5 28-25-13-25 13 5-28-20-20 28-4z"/><path d="m37 91-4 14 17-8 17 8-4-14"/></svg>`;
+      prizesGrid.innerHTML = d.prizes.map((p, i) => {
+        const isMvp = /mvp/i.test(`${p.place || ''} ${p.reason || ''}`);
+        const isFirst = !isMvp && (/^(1|primer|campe)/i.test(String(p.place || '').trim()) || i === 0);
+        return `<article class="prize-card ${isFirst ? 'first' : isMvp ? 'prize-mvp' : 'prize-other'}">
+          <div class="prize-emblem">${isMvp ? mvpIcon : trophy}</div>
+          <div class="prize-content"><h3 class="prize-place">${esc(p.place)}</h3>
+            <p class="prize-amount">${esc(p.amount || 'Por confirmar')}</p>
+            ${p.reason && p.reason.toLowerCase() !== String(p.place).toLowerCase() ? `<p class="prize-reason">${esc(p.reason)}</p>` : ''}
+          </div>
+          <div class="prize-foot"><span>${isFirst ? 'Campeón del torneo' : isMvp ? 'Reconocimiento individual' : 'Premio del torneo'}</span></div>
+        </article>`;
+      }).join('');
     } else if (prizesGrid) {
       prizesGrid.innerHTML = `<p class="prizes-empty">Premios próximamente.</p>`;
     }
