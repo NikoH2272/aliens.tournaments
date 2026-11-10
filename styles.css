@@ -1323,8 +1323,8 @@ footer {
 }
 .sp-teams {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
   margin-top: 2px;
 }
 .sp-team {
