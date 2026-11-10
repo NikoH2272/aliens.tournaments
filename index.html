@@ -75,9 +75,10 @@
 <div class="cd-bar" id="calendario">
   <div class="cd-info">
     <div class="cd-lbl">Próxima fecha</div>
-    <div class="cd-name">Aliens Championship <span style="color:var(--cyan)">S1</span></div>
-    <div class="cd-sub">Free Fire · Cuartos de Final · Nov 9</div>
+    <div class="cd-name" id="cdName">Aliens Championship <span style="color:var(--cyan)">S1</span></div>
+    <div class="cd-sub" id="cdSub">Free Fire · Próximo torneo</div>
   </div>
+  <div class="cd-logos" id="cdLogos"></div>
   <div class="cd-units">
     <div class="cd-unit"><div class="cd-num" id="cdD">--</div><div class="cd-lbl2">Días</div></div>
     <div class="cd-sep">:</div>
@@ -256,6 +257,50 @@
     const d = await PYROCORE.loadData();
     const esc = PYROCORE.esc;
     const L = d.links || {};
+
+    // ── Countdown dinámico ──
+    (() => {
+      const { teamLogo } = PYROCORE;
+      const schedule = d.schedule || [];
+      const teamsArr = d.teams || [];
+      const now = Date.now();
+      const upcoming = schedule
+        .filter(m => m.visible && m.date)
+        .map(m => {
+          const ts = new Date(m.date + 'T' + (m.time || '00:00') + ':00-06:00').getTime();
+          return { ...m, _ts: ts };
+        })
+        .filter(m => m._ts > now)
+        .sort((a, b) => a._ts - b._ts);
+      const next = upcoming[0];
+      if (!next) {
+        window._cdTarget = new Date('2026-11-16T18:00:00-06:00').getTime();
+        return;
+      }
+      window._cdTarget = next._ts;
+      const cdSubEl = document.getElementById('cdSub');
+      if (cdSubEl) {
+        const dt = new Date(next.date + 'T00:00:00');
+        const dateStr = dt.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+        cdSubEl.textContent = `Free Fire · ${next.phase}${next.group ? ' · ' + next.group : ''} · ${dateStr}`;
+      }
+      const logosEl = document.getElementById('cdLogos');
+      if (logosEl) {
+        const grp = (d.results || []).find(r =>
+          r.kind !== 'general' && r.phase === next.phase &&
+          (r.title || '').toLowerCase() === (next.group || '').toLowerCase()
+        );
+        const rows = grp ? grp.rows.filter(r => (r.team || '').trim()) : [];
+        if (rows.length) {
+          const imgs = rows.map(r => {
+            const lp = teamLogo(teamsArr, r.team) || 'logo.png';
+            return `<img src="${lp}" alt="${esc(r.team)}" title="${esc(r.team)}" loading="lazy" onerror="this.src='logo.png'">`;
+          });
+          const dur = Math.max(10, rows.length * 2.5);
+          logosEl.innerHTML = `<div class="cd-logos-track" style="--cd-dur:${dur}s">${[...imgs, ...imgs].join('')}</div>`;
+        }
+      }
+    })();
     const ICONS = { whatsapp: "WA", discord: "DC", instagram: "IG", tiktok: "TK", youtube: "YT", twitch: "TV" };
 
     // Actualizar todos los elementos marcados con data-dyn

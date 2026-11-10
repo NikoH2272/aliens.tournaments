@@ -17,9 +17,10 @@ if (burgerBtn && hdrNav) {
 
 /* ── COUNTDOWN ───────────────────────────── */
 (function() {
-  const target = new Date('2026-11-09T18:00:00-06:00').getTime();
   const pad = n => String(n).padStart(2,'0');
   function tick() {
+    const target = window._cdTarget;
+    if (!target) return;
     const diff = target - Date.now();
     if (diff <= 0) {
       ['cdD','cdH','cdM','cdS'].forEach(id => {
@@ -28,15 +29,14 @@ if (burgerBtn && hdrNav) {
       });
       return;
     }
-    const d = document.getElementById('cdD');
-    const h = document.getElementById('cdH');
-    const m = document.getElementById('cdM');
-    const s = document.getElementById('cdS');
-
-    if(d) d.textContent = pad(Math.floor(diff/86400000));
-    if(h) h.textContent = pad(Math.floor(diff%86400000/3600000));
-    if(m) m.textContent = pad(Math.floor(diff%3600000/60000));
-    if(s) s.textContent = pad(Math.floor(diff%60000/1000));
+    const dEl = document.getElementById('cdD');
+    const hEl = document.getElementById('cdH');
+    const mEl = document.getElementById('cdM');
+    const sEl = document.getElementById('cdS');
+    if(dEl) dEl.textContent = pad(Math.floor(diff/86400000));
+    if(hEl) hEl.textContent = pad(Math.floor(diff%86400000/3600000));
+    if(mEl) mEl.textContent = pad(Math.floor(diff%3600000/60000));
+    if(sEl) sEl.textContent = pad(Math.floor(diff%60000/1000));
   }
   tick(); setInterval(tick, 1000);
 })();

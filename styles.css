@@ -370,6 +370,35 @@ input, button, textarea, select {
   margin-top: 4px;
 }
 
+.cd-logos {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  margin: 0 20px;
+}
+.cd-logos:empty { display: none; }
+.cd-logos-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: cdScroll var(--cd-dur, 20s) linear infinite;
+  will-change: transform;
+}
+.cd-logos-track img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+}
+@keyframes cdScroll {
+  to { transform: translateX(-50%); }
+}
+
 .cd-sep {
   font: 900 1.8rem/1 var(--fo);
   color: rgba(0,180,216,.3);
@@ -727,6 +756,9 @@ footer {
   .hero-stats { flex-direction: column; border-radius: 0; border-left: none; border-right: none; }
   .hero-stat + .hero-stat { border-left: none; border-top: 1px solid var(--border); }
   .cd-bar { flex-direction: column; align-items: flex-start; }
+  .cd-logos { margin: 8px 0; width: 100%; max-width: 100%; }
+  .cd-logos-track img { width: 28px; height: 28px; border-radius: 6px; }
+  .cd-logos-track { gap: 7px; }
   .team-trend { display: none; }
   .team-row { grid-template-columns: 36px 1fr auto; gap: 10px; padding: 12px; }
 
