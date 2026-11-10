@@ -53,6 +53,10 @@
 
   const toSlug = (s) => s.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
+  const PHASE_REMAP = { "cuartos": "Cuartos de final", "semifinal": "Semifinal", "final": "Final", "octavos": "Octavos de final" };
+  const normPhase = (p) => PHASE_REMAP[(p || "").trim().toLowerCase()] || (p || "").trim();
+  const normGroup = (g) => { const m = (g || "").trim().match(/^G(\d+)$/i); return m ? `Grupo ${m[1]}` : (g || "").trim(); };
+
   const normalize = (d) => {
     d.tournament ??= {}; d.links ??= {};
     d.prizes ??= []; d.schedule ??= []; d.results ??= []; d.sponsors ??= []; d.teams ??= [];
@@ -61,6 +65,18 @@
     d.tournament.state = STATES[d.tournament.state] ? d.tournament.state : "abierto";
     ["rulesText", "clarificationsText", "prohibitedText", "rulesNote"].forEach((k) => {
       if (typeof d.tournament[k] !== "string") d.tournament[k] = PYROCORE.DEFAULT_RULES[k];
+    });
+    // normalizar nombres de fases y grupos
+    d.results.forEach(r => { r.phase = normPhase(r.phase); });
+    d.schedule.forEach(m => { m.phase = normPhase(m.phase); m.group = normGroup(m.group); });
+    // deduplicar cronograma: por phase+group, conservar el que tenga fecha
+    const schedSeen = new Map();
+    d.schedule = d.schedule.filter(m => {
+      const key = `${m.phase}|${(m.group || "").trim().toLowerCase()}`;
+      const prev = schedSeen.get(key);
+      if (!prev) { schedSeen.set(key, m); return true; }
+      if (!prev.date && m.date) { schedSeen.set(key, m); return true; } // mejor este
+      return false;
     });
     while (d.sponsors.length < SPONSOR_SLOTS) d.sponsors.push({ id: uuid(), name: "", logo: "", url: "" });
     return d;
@@ -119,6 +135,7 @@
       if (expired(err)) { return redirectToLogin(); }
       return toast("No se pudo cargar la base de datos: " + err.message, true);
     }
+    syncResultsToSchedule();
     $("#savebar").hidden = false;
     $("#logout").hidden = false;
     $("#change-pw").hidden = false;
@@ -129,6 +146,17 @@
     $("#save-state").textContent = "Todo guardado";
     $("#save-state").style.color = "";
     renderAll();
+  }
+
+  function syncResultsToSchedule() {
+    data.results.filter((r) => r.kind !== "general").forEach((r) => {
+      const exists = data.schedule.some((m) => m.phase === r.phase && (m.group || "").trim().toLowerCase() === (r.title || "").trim().toLowerCase());
+      if (!exists) {
+        const ref = data.schedule.filter((m) => m.phase === r.phase).slice(-1)[0];
+        data.schedule.push({ id: uuid(), phase: r.phase, group: r.title, date: "", time: "", rooms: ref?.rooms || 1, status: "proximo", visible: false, note: "" });
+        dirty = true;
+      }
+    });
   }
 
   $("#menu").addEventListener("click", (e) => {
@@ -487,6 +515,38 @@
 
   function renderAll() { renderGeneral(); renderPrizes(); renderSchedule(); renderResults(); renderSponsors(); renderTeams(); }
 
+  function copyPhaseToWA(phase) {
+    const groups = data.results.filter((r) => r.phase === phase && r.kind !== "general");
+    if (!groups.length) return toast("Sin grupos con equipos en esta fase", true);
+    const lines = [`📋 *${phase}*`];
+    groups.forEach((g) => {
+      const sched = data.schedule.find((m) => m.phase === phase && (m.group || "").trim().toLowerCase() === (g.title || "").trim().toLowerCase());
+      const teams = g.rows.filter((r) => (r.team || "").trim());
+      lines.push(`\n🎮 *${g.title}*`);
+      if (sched?.date) {
+        const dt = new Date(sched.date + "T00:00:00");
+        lines.push(`📅 ${dt.toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}`);
+      }
+      if (sched?.time) {
+        const [h, min] = sched.time.split(":").map(Number);
+        const hh = h % 12 || 12;
+        lines.push(`⏰ ${hh}:${String(min || 0).padStart(2, "0")} ${h < 12 ? "AM" : "PM"} MX`);
+      }
+      if (teams.length) {
+        lines.push("👥 Equipos:");
+        teams.forEach((r, i) => lines.push(`  ${i + 1}. ${r.team}`));
+      }
+    });
+    const text = lines.join("\n").trim();
+    navigator.clipboard.writeText(text).then(() => toast("✓ Copiado para WhatsApp")).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.cssText = "position:fixed;opacity:0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast("✓ Copiado para WhatsApp");
+    });
+  }
+
   function parseTeams(text) {
     return text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
       const clean = l.replace(/^\d{1,3}\s*[.)\-:]\s*/, "");
@@ -531,6 +591,13 @@
       const names = parseTeams(b.lines.join("\n")).map((r) => r.team);
       setTeamNames(data.results[gi], names);
       touch(gi);
+      // crear entrada en cronograma si no existe
+      const existsSched = data.schedule.some((m) => m.phase === phase && (m.group || "").trim().toLowerCase() === title.toLowerCase());
+      if (!existsSched) {
+        const last = data.schedule.filter((m) => m.phase === phase);
+        const ref = last[last.length - 1];
+        data.schedule.push({ id: uuid(), phase, group: title, date: ref?.date || "", time: ref?.time || "", rooms: ref?.rooms || 1, status: "proximo", visible: false, note: "" });
+      }
       report.push(`${title}: ${names.length}${names.length !== size ? " ⚠" : ""}`);
     });
     renderResults(); renderSchedule(); markDirty();
@@ -715,6 +782,8 @@
     } else if (d.rosterok !== undefined) {
       const box = document.querySelector(`[data-roster="${CSS.escape(d.rosterok)}"]`);
       bulkLoad(d.rosterok, box.querySelector("textarea").value);
+    } else if (d.waphase !== undefined) {
+      copyPhaseToWA(d.waphase);
     } else if (d.showphase !== undefined) {
       data.schedule.filter((m) => m.phase === d.showphase).forEach((m) => { m.visible = d.on === "1"; });
       renderSchedule(); markDirty();
@@ -1025,6 +1094,8 @@ Solo el JSON array, sin texto adicional.`;
     });
     renderResults(); markDirty();
   });
+
+  $("#wa-copy-phase").addEventListener("click", () => copyPhaseToWA(curPhase));
 
   $("#save").addEventListener("click", async () => {
     const btn = $("#save");
