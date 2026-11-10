@@ -39,7 +39,6 @@
   </div>
 
   <div class="hero-content">
-    <p class="hero-eyebrow">Anuncio oficial · Temporada 1</p>
     <h1 class="hero-title">
       DOMINA
       <span class="ghost">EL COSMOS</span>
@@ -92,7 +91,6 @@
 
 <!-- ── CRONOGRAMA ── -->
 <section class="section sched-section" id="cronograma">
-  <div class="sec-eyebrow">Temporada 1 · S1</div>
   <h2 class="sec-title">Cronograma</h2>
   <div class="teams-search-wrap">
     <input type="search" id="schedSearch" class="teams-search" placeholder="Buscar tu equipo…" autocomplete="off">
@@ -104,7 +102,6 @@
 
 <!-- ── EQUIPOS ── -->
 <section class="section teams-section" id="equipos">
-  <div class="sec-eyebrow">Temporada 1 · S1</div>
   <h2 class="sec-title">Equipos Participantes</h2>
   <div class="teams-search-wrap">
     <input type="search" id="teamsSearch" class="teams-search" placeholder="Buscar equipo…" autocomplete="off">
@@ -121,14 +118,12 @@
 
 <!-- ── PREMIOS ── -->
 <section class="section prizes-section" id="premios">
-  <div class="sec-eyebrow">Temporada 1 · S1</div>
   <h2 class="sec-title">Premios</h2>
   <div class="prizes-grid" id="prizesGrid"></div>
 </section>
 
 <!-- ── RESULTADOS ── -->
 <section class="section results-section" id="resultados">
-  <div class="sec-eyebrow">En vivo · S1</div>
   <h2 class="sec-title">Resultados</h2>
   <div class="res-tabs" id="resTabs"></div>
   <div class="res-body" id="resBody">
@@ -138,7 +133,6 @@
 
 <!-- ── FORMATO ── -->
 <section class="section" id="torneos">
-  <div class="sec-eyebrow">Formato · S1</div>
   <h2 class="sec-title">Formato del Torneo</h2>
   <div class="phases">
     <div class="phase">
@@ -459,10 +453,11 @@
                   <span>${esc(r.team)}</span>
                 </div>`;
               }).join("");
-              return `<div class="sp-card">
+              return `<div class="sp-card" data-phase="${esc(m.phase)}" data-group="${esc(m.group||"")}" data-date="${esc(m.date||"")}" data-time="${esc(m.time||"")}" data-rooms="${m.rooms||1}">
                 <div class="sp-card-head">
                   <span class="sp-group">${esc(m.group || "Grupo")}</span>
                   <span class="sp-badge ${STATUS_CLS[status] || "sp-next"}">${STATUS_LABEL[status] || status}</span>
+                  <button class="sp-dl-btn" title="Descargar Match Day card" aria-label="Descargar imagen">↓</button>
                 </div>
                 <div class="sp-meta">
                   ${m.date ? `<span>${fmtDate(m.date)}</span>` : ""}
@@ -479,6 +474,161 @@
       if (searchEl) {
         searchEl.addEventListener("input", () => renderSched(searchEl.value.trim().toLowerCase()));
       }
+
+      // ── Match Day card download ──
+      async function matchDayCard(phase, group, date, time, rooms) {
+        const rows = getGroupTeams(phase, group);
+        const W = 1080, H = 1350;
+        const canvas = document.createElement("canvas");
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext("2d");
+
+        // load fonts
+        await document.fonts.load('900 80px "Barlow Condensed"');
+        await document.fonts.load('700 40px "Barlow Condensed"');
+
+        // load images
+        const logoSrc = "logo.png";
+        const teamImgs = rows.map(r => ({ team: r.team, src: teamLogo(teamsArr, r.team) || "logo.png" }));
+        const allSrcs = [logoSrc, ...teamImgs.map(t => t.src)];
+        const imgMap = {};
+        await Promise.all(allSrcs.map(src => new Promise(res => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => { imgMap[src] = img; res(); };
+          img.onerror = () => res();
+          img.src = src;
+        })));
+
+        // background gradient
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, "#060C18");
+        bg.addColorStop(0.5, "#091220");
+        bg.addColorStop(1, "#04080F");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        // radial cyan glow top
+        const glow = ctx.createRadialGradient(W/2, 0, 0, W/2, 0, 700);
+        glow.addColorStop(0, "rgba(0,180,216,0.22)");
+        glow.addColorStop(1, "rgba(0,180,216,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, W, H);
+
+        // scanlines overlay
+        for (let y = 0; y < H; y += 4) {
+          ctx.fillStyle = "rgba(0,0,0,0.12)";
+          ctx.fillRect(0, y, W, 1);
+        }
+
+        // top accent line
+        ctx.fillStyle = "#00B4D8";
+        ctx.fillRect(0, 0, W, 3);
+        // bottom accent line
+        ctx.fillStyle = "rgba(0,180,216,0.5)";
+        ctx.fillRect(0, H - 3, W, 3);
+
+        // logo
+        const logoImg = imgMap[logoSrc];
+        if (logoImg) {
+          const lsz = 90;
+          ctx.drawImage(logoImg, (W - lsz) / 2, 48, lsz, lsz);
+        }
+
+        // "ALIENS.GG"
+        ctx.font = '700 28px "Barlow Condensed"';
+        ctx.letterSpacing = "6px";
+        ctx.fillStyle = "rgba(0,180,216,0.85)";
+        ctx.textAlign = "center";
+        ctx.fillText("ALIENS.GG", W / 2, 168);
+        ctx.letterSpacing = "0px";
+
+        // "MATCH DAY"
+        ctx.font = '900 128px "Barlow Condensed"';
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText("MATCH DAY", W / 2, 288);
+
+        // phase tag
+        ctx.font = '700 36px "Barlow Condensed"';
+        ctx.fillStyle = "rgba(0,180,216,0.7)";
+        ctx.fillText(phase.toUpperCase(), W / 2, 342);
+
+        // group name
+        ctx.font = '900 72px "Barlow Condensed"';
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText((group || "").toUpperCase(), W / 2, 428);
+
+        // separator
+        ctx.strokeStyle = "rgba(0,180,216,0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(80, 452); ctx.lineTo(W - 80, 452); ctx.stroke();
+
+        // date / time / rooms meta
+        const fmtD = date ? new Date(date + "T00:00:00").toLocaleDateString("es", { weekday:"long", day:"numeric", month:"long" }) : "";
+        const fmtT = time ? (() => { const [h,m] = time.split(":").map(Number); const hh = h%12||12; return `${hh}:${String(m||0).padStart(2,"0")} ${h<12?"AM":"PM"} MX`; })() : "";
+        const metaParts = [fmtD, fmtT, rooms > 1 ? `${rooms} salas` : ""].filter(Boolean);
+        ctx.font = '700 32px "Barlow Condensed"';
+        ctx.fillStyle = "rgba(255,255,255,0.65)";
+        ctx.fillText(metaParts.join("  ·  "), W / 2, 494);
+
+        // team logos grid
+        if (teamImgs.length) {
+          const cols = teamImgs.length <= 6 ? 2 : 3;
+          const imgSz = cols === 2 ? 100 : 76;
+          const nameFont = cols === 2 ? '700 26px "Barlow Condensed"' : '700 22px "Barlow Condensed"';
+          const cellW = cols === 2 ? 420 : 290;
+          const cellH = imgSz + 44;
+          const totalRows = Math.ceil(teamImgs.length / cols);
+          const gridH = totalRows * cellH;
+          const startY = 540 + (H - 540 - 60 - gridH) / 2;
+          const startX = (W - cols * cellW) / 2;
+
+          teamImgs.forEach((t, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const cx = startX + col * cellW + cellW / 2;
+            const cy = startY + row * cellH;
+
+            // logo circle bg
+            ctx.fillStyle = "rgba(255,255,255,0.05)";
+            ctx.beginPath();
+            ctx.arc(cx, cy + imgSz / 2, imgSz / 2 + 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            const tImg = imgMap[t.src];
+            if (tImg) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(cx, cy + imgSz / 2, imgSz / 2, 0, Math.PI * 2);
+              ctx.clip();
+              ctx.drawImage(tImg, cx - imgSz / 2, cy, imgSz, imgSz);
+              ctx.restore();
+            }
+
+            ctx.font = nameFont;
+            ctx.fillStyle = "rgba(255,255,255,0.88)";
+            ctx.fillText(t.team, cx, cy + imgSz + 30);
+          });
+        }
+
+        // download
+        const link = document.createElement("a");
+        link.download = `matchday-${(group||phase).replace(/\s+/g,"-").toLowerCase()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+
+      bodyEl.addEventListener("click", e => {
+        const btn = e.target.closest(".sp-dl-btn");
+        if (!btn) return;
+        const card = btn.closest(".sp-card");
+        if (!card) return;
+        btn.textContent = "…";
+        btn.disabled = true;
+        const { phase, group, date, time, rooms } = card.dataset;
+        matchDayCard(phase, group, date, time, Number(rooms) || 1)
+          .finally(() => { btn.textContent = "↓"; btn.disabled = false; });
+      });
     })();
 
     // ── Resultados públicos ──
@@ -513,8 +663,8 @@
           const filled = g.rows.filter(r => (r.team || "").trim());
           const sorted = sortRows(filled);
           const qualSet = new Set(sorted.slice(0, q));
-          return `<div class="res-group">
-            <div class="rg-head">${esc(g.title || "Grupo")}</div>
+          return `<div class="res-group" data-gid="${esc(g.id)}">
+            <div class="rg-head"><span>${esc(g.title || "Grupo")}</span><button class="res-dl-btn" title="Descargar resultados">↓</button></div>
             <div class="rg-rows">
               ${sorted.map((row, k) => {
                 const qual = qualSet.has(row);
@@ -544,6 +694,240 @@
       });
 
       render();
+
+      // ── Results card download ──
+      async function resultsCard(gid) {
+        const g = results.find(r => r.id === gid);
+        if (!g) return;
+        const q = Number(g.qualify) || 0;
+        const filled = g.rows.filter(r => (r.team || "").trim());
+        const sorted = sortRows(filled);
+
+        // find schedule entry for rooms/date
+        const sched = (d.schedule || []).find(s =>
+          s.phase === g.phase && (s.group || "").toLowerCase() === (g.title || "").toLowerCase()
+        );
+        const rooms = Number(sched?.rooms) || 1;
+        const dateStr = sched?.date ? new Date(sched.date + "T00:00:00").toLocaleDateString("es", { weekday:"short", day:"numeric", month:"short" }) : "";
+
+        await document.fonts.load('900 72px "Barlow Condensed"');
+        await document.fonts.load('700 36px "Barlow Condensed"');
+        await document.fonts.load('600 28px "Barlow Condensed"');
+
+        const logoSrc = "logo.png";
+        const teamSrcs = sorted.map(r => teamLogo(teamsArr, r.team) || "logo.png");
+        const allSrcs = [...new Set([logoSrc, ...teamSrcs])];
+        const imgMap = {};
+        await Promise.all(allSrcs.map(src => new Promise(res => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => { imgMap[src] = img; res(); };
+          img.onerror = () => res();
+          img.src = src;
+        })));
+
+        // split into 1 or 2 images
+        const SPLIT = 10;
+        const chunks = sorted.length > SPLIT
+          ? [sorted.slice(0, SPLIT), sorted.slice(SPLIT)]
+          : [sorted];
+
+        chunks.forEach((chunk, chunkIdx) => {
+          const W = 1080;
+          const HEADER_H = 240;
+          const PODIUM_H = chunkIdx === 0 ? 180 : 0;
+          const COL_H = 36;
+          const ROW_H = 54;
+          const FOOTER_H = 50;
+          const H = HEADER_H + PODIUM_H + COL_H + chunk.length * ROW_H + FOOTER_H;
+          const canvas = document.createElement("canvas");
+          canvas.width = W; canvas.height = H;
+          const ctx = canvas.getContext("2d");
+
+          // ── BG ──
+          const bg = ctx.createLinearGradient(0, 0, 0, H);
+          bg.addColorStop(0, "#060C18"); bg.addColorStop(0.6, "#091220"); bg.addColorStop(1, "#04080F");
+          ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+          const gw = ctx.createRadialGradient(W/2, 0, 0, W/2, 0, 600);
+          gw.addColorStop(0, "rgba(0,180,216,0.18)"); gw.addColorStop(1, "rgba(0,180,216,0)");
+          ctx.fillStyle = gw; ctx.fillRect(0, 0, W, H);
+          for (let y = 0; y < H; y += 4) { ctx.fillStyle = "rgba(0,0,0,0.1)"; ctx.fillRect(0, y, W, 1); }
+          ctx.fillStyle = "#00B4D8"; ctx.fillRect(0, 0, W, 3);
+          ctx.fillStyle = "rgba(0,180,216,0.4)"; ctx.fillRect(0, H - 3, W, 3);
+
+          // ── HEADER ──
+          ctx.textAlign = "center";
+          if (imgMap[logoSrc]) ctx.drawImage(imgMap[logoSrc], (W - 54) / 2, 24, 54, 54);
+          ctx.font = '700 22px "Barlow Condensed"'; ctx.letterSpacing = "5px";
+          ctx.fillStyle = "rgba(0,180,216,0.85)"; ctx.fillText("ALIENS.GG", W/2, 102); ctx.letterSpacing = "0px";
+          ctx.font = '900 88px "Barlow Condensed"'; ctx.fillStyle = "#FFFFFF";
+          ctx.fillText("RESULTADOS", W/2, 185);
+          const subParts = [g.phase, g.title, dateStr, rooms > 1 ? `${rooms} salas` : ""].filter(Boolean);
+          ctx.font = '700 28px "Barlow Condensed"'; ctx.fillStyle = "rgba(0,180,216,0.65)";
+          ctx.fillText(subParts.join("  ·  "), W/2, 218);
+
+          // separator
+          ctx.strokeStyle = "rgba(0,180,216,0.25)"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(60, 230); ctx.lineTo(W - 60, 230); ctx.stroke();
+
+          // ── PODIUM (chunk 0 only) ──
+          if (chunkIdx === 0 && sorted.length >= 1) {
+            const podiumY = 240;
+            const MEDAL_COLORS = ["#D4AF37", "#C0C0C0", "#CD7F32"];
+            const PODIUM_ORDER = sorted.length >= 3 ? [sorted[1], sorted[0], sorted[2]] : [null, sorted[0], null];
+            const PODIUM_X = [W * 0.22, W * 0.5, W * 0.78];
+            const PODIUM_Y_OFF = [20, 0, 30]; // 2nd higher than 3rd
+            const PODIUM_SZ = [56, 70, 50];
+            const PODIUM_IDX = [1, 0, 2];
+
+            PODIUM_ORDER.forEach((row, pi) => {
+              if (!row) return;
+              const cx = PODIUM_X[pi], cy = podiumY + PODIUM_Y_OFF[pi];
+              const sz = PODIUM_SZ[pi];
+              const color = MEDAL_COLORS[PODIUM_IDX[pi]];
+              // ring
+              ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+              ctx.beginPath(); ctx.arc(cx, cy + sz/2, sz/2 + 5, 0, Math.PI*2); ctx.stroke();
+              // logo
+              const tsrc = teamLogo(teamsArr, row.team) || "logo.png";
+              const timg = imgMap[tsrc];
+              if (timg) {
+                ctx.save(); ctx.beginPath(); ctx.arc(cx, cy + sz/2, sz/2, 0, Math.PI*2); ctx.clip();
+                ctx.drawImage(timg, cx - sz/2, cy, sz, sz); ctx.restore();
+              }
+              // position badge
+              ctx.fillStyle = color; ctx.beginPath();
+              ctx.arc(cx + sz/2, cy + sz - 2, 12, 0, Math.PI*2); ctx.fill();
+              ctx.font = '900 15px "Barlow Condensed"'; ctx.fillStyle = "#0a0e1a"; ctx.textAlign = "center";
+              ctx.fillText(PODIUM_IDX[pi] === 0 ? "1" : PODIUM_IDX[pi] === 1 ? "2" : "3", cx + sz/2, cy + sz + 2);
+              // name
+              ctx.font = '700 22px "Barlow Condensed"'; ctx.fillStyle = "rgba(255,255,255,0.9)";
+              ctx.fillText(row.team, cx, cy + sz + 28);
+              // pts
+              ctx.font = '700 28px "Barlow Condensed"'; ctx.fillStyle = color;
+              ctx.fillText(total(row), cx, cy + sz + 54);
+            });
+
+            // separator after podium
+            const sepY = HEADER_H + PODIUM_H - 10;
+            ctx.strokeStyle = "rgba(0,180,216,0.2)"; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(60, sepY); ctx.lineTo(W - 60, sepY); ctx.stroke();
+          }
+
+          // ── TABLE ──
+          const tableY = HEADER_H + PODIUM_H;
+          const LM = 20, RM = W - 20;
+          const COL_KILLS_X = 740, COL_TOP_X = 850, COL_PTS_X = 970;
+
+          // column headers
+          ctx.font = '600 20px "Barlow Condensed"'; ctx.letterSpacing = "2px";
+          ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.textAlign = "left";
+          ctx.fillText("EQUIPO", LM + 90, tableY + 24);
+          ctx.textAlign = "center";
+          ctx.fillText("KILLS", COL_KILLS_X + 50, tableY + 24);
+          ctx.fillText("TOP", COL_TOP_X + 50, tableY + 24);
+          ctx.textAlign = "right";
+          ctx.fillStyle = "rgba(0,224,176,0.5)";
+          ctx.fillText("PTS", RM, tableY + 24);
+          ctx.letterSpacing = "0px";
+
+          const RANK_COLORS = ["#D4AF37", "#C0C0C0", "#CD7F32"];
+          const ROW_BG = ["rgba(212,175,55,0.1)", "rgba(192,192,192,0.06)", "rgba(205,127,50,0.06)"];
+          const startGlobalIdx = chunkIdx * SPLIT;
+
+          chunk.forEach((row, i) => {
+            const globalIdx = startGlobalIdx + i;
+            const ry = tableY + COL_H + i * ROW_H;
+            const isTop3 = globalIdx < 3;
+            const isFirst = globalIdx === 0;
+            const qual = globalIdx < q;
+
+            // row bg
+            if (isTop3) {
+              ctx.fillStyle = ROW_BG[globalIdx];
+              ctx.fillRect(LM, ry, RM - LM, ROW_H - 2);
+            } else if (i % 2 === 0) {
+              ctx.fillStyle = "rgba(255,255,255,0.02)";
+              ctx.fillRect(LM, ry, RM - LM, ROW_H - 2);
+            }
+
+            // rank
+            const rankColor = isTop3 ? RANK_COLORS[globalIdx] : "rgba(255,255,255,0.3)";
+            ctx.font = isTop3 ? '900 24px "Barlow Condensed"' : '600 20px "Barlow Condensed"';
+            ctx.fillStyle = rankColor; ctx.textAlign = "center";
+            ctx.fillText(globalIdx + 1, LM + 22, ry + ROW_H / 2 + 7);
+
+            // logo circle
+            const lsz = 36;
+            const lx = LM + 50, ly = ry + (ROW_H - lsz) / 2;
+            ctx.fillStyle = "rgba(255,255,255,0.04)";
+            ctx.beginPath(); ctx.arc(lx + lsz/2, ly + lsz/2, lsz/2 + 2, 0, Math.PI*2); ctx.fill();
+            const tsrc = teamSrcs[startGlobalIdx + i];
+            const timg = imgMap[tsrc];
+            if (timg) {
+              ctx.save(); ctx.beginPath(); ctx.arc(lx + lsz/2, ly + lsz/2, lsz/2, 0, Math.PI*2); ctx.clip();
+              ctx.drawImage(timg, lx, ly, lsz, lsz); ctx.restore();
+            }
+
+            // booyah badge for 1st
+            if (isFirst) {
+              ctx.fillStyle = "#D4AF37"; ctx.font = '700 14px "Barlow Condensed"'; ctx.letterSpacing = "1px";
+              ctx.textAlign = "left";
+              const bx = lx + lsz + 6, by = ry + ROW_H/2 - 11;
+              ctx.fillStyle = "rgba(212,175,55,0.2)";
+              ctx.beginPath(); ctx.roundRect(bx, by, 72, 18, 4); ctx.fill();
+              ctx.fillStyle = "#D4AF37"; ctx.fillText("BOOYAH", bx + 6, by + 13);
+              ctx.letterSpacing = "0px";
+            }
+
+            // team name
+            const nameX = lx + lsz + (isFirst ? 86 : 10);
+            ctx.font = isTop3 ? '700 26px "Barlow Condensed"' : '600 24px "Barlow Condensed"';
+            ctx.fillStyle = qual ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.4)";
+            ctx.textAlign = "left";
+            const maxNameW = COL_KILLS_X - nameX - 10;
+            let name = row.team;
+            ctx.save();
+            ctx.font = isTop3 ? '700 26px "Barlow Condensed"' : '600 24px "Barlow Condensed"';
+            while (ctx.measureText(name).width > maxNameW && name.length > 4) name = name.slice(0, -1);
+            if (name !== row.team) name = name.slice(0, -1) + "…";
+            ctx.fillText(name, nameX, ry + ROW_H / 2 + 8);
+            ctx.restore();
+
+            // kills
+            ctx.font = '600 24px "Barlow Condensed"'; ctx.textAlign = "center";
+            ctx.fillStyle = "rgba(255,255,255,0.65)";
+            ctx.fillText(Number(row.kills) || 0, COL_KILLS_X + 50, ry + ROW_H / 2 + 8);
+
+            // placement (top)
+            ctx.fillStyle = "rgba(255,255,255,0.65)";
+            ctx.fillText(Number(row.placement) || 0, COL_TOP_X + 50, ry + ROW_H / 2 + 8);
+
+            // total pts
+            ctx.font = isTop3 ? '900 28px "Barlow Condensed"' : '700 26px "Barlow Condensed"';
+            ctx.fillStyle = qual ? "#00e6b0" : "rgba(255,255,255,0.35)";
+            ctx.textAlign = "right";
+            ctx.fillText(total(row), RM, ry + ROW_H / 2 + 8);
+          });
+
+          // ── DOWNLOAD ──
+          const link = document.createElement("a");
+          const suffix = chunks.length > 1 ? `-${chunkIdx + 1}de${chunks.length}` : "";
+          link.download = `resultados-${(g.title || g.phase).replace(/\s+/g, "-").toLowerCase()}${suffix}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      }
+
+      bodyEl.addEventListener("click", async e => {
+        const btn = e.target.closest(".res-dl-btn");
+        if (!btn) return;
+        const card = btn.closest(".res-group");
+        if (!card) return;
+        btn.textContent = "…"; btn.disabled = true;
+        try { await resultsCard(card.dataset.gid); }
+        finally { btn.textContent = "↓"; btn.disabled = false; }
+      });
     })();
 
     // ── Modal bienvenida ──

@@ -1,3 +1,18 @@
+/* ── BROWSER SURFACES ────────────────────── */
+::selection { background: rgba(0,180,216,.28); color: #fff; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #06080F; }
+::-webkit-scrollbar-thumb { background: rgba(0,180,216,.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,180,216,.55); }
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
 /* ── NORMALIZE & VARIABLES ──────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -86,7 +101,7 @@ input, button, textarea, select {
 }
 
 .hdr-nav a {
-  font: 600 .65rem/1 var(--fo);
+  font: 600 .75rem/1 var(--fo);
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--gray);
@@ -112,8 +127,8 @@ input, button, textarea, select {
   text-decoration: none;
 }
 .btn-reg:hover { filter: brightness(1.12); }
-.btn-reg--closed { background: #2a2f3a; color: #6b7685; cursor: default; pointer-events: none; }
-.btn-closed { background: #2a2f3a !important; color: #6b7685 !important; cursor: default !important; pointer-events: none; }
+.btn-reg--closed { background: #2a2f3a; color: #929da8; cursor: default; pointer-events: none; }
+.btn-closed { background: #2a2f3a !important; color: #929da8 !important; cursor: default !important; pointer-events: none; }
 
 .burger {
   display: none;
@@ -214,13 +229,13 @@ input, button, textarea, select {
   letter-spacing: .04em;
   text-transform: uppercase;
   color: #fff;
-  text-shadow: 0 0 80px rgba(0,180,216,.25), 0 4px 32px rgba(0,0,0,.7);
+  text-shadow: 0 4px 40px rgba(0,0,0,.8);
   margin-bottom: 4px;
 }
 
 .hero-title .ghost {
   color: transparent;
-  -webkit-text-stroke: 1.5px rgba(0,180,216,.5);
+  -webkit-text-stroke: 1.5px rgba(0,180,216,.85);
   display: block;
 }
 
@@ -228,7 +243,7 @@ input, button, textarea, select {
   font: 700 clamp(.9rem, 2.5vw, 1.5rem)/.9 var(--fe);
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.35);
+  color: rgba(255,255,255,.55);
   margin-bottom: 36px;
 }
 
@@ -304,8 +319,8 @@ input, button, textarea, select {
 .stat-n em { font-style: normal; color: var(--cyan); }
 
 .stat-l {
-  font: 600 .55rem/1 var(--fo);
-  letter-spacing: .14em;
+  font: 600 .72rem/1 var(--fo);
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--gray);
   margin-top: 5px;
@@ -325,8 +340,8 @@ input, button, textarea, select {
 }
 
 .cd-lbl {
-  font: 600 .58rem/1 var(--fo);
-  letter-spacing: .18em;
+  font: 600 .72rem/1 var(--fo);
+  letter-spacing: .15em;
   text-transform: uppercase;
   color: var(--cyan);
   margin-bottom: 5px;
@@ -363,8 +378,8 @@ input, button, textarea, select {
 }
 
 .cd-lbl2 {
-  font: 700 .5rem/1 var(--fo);
-  letter-spacing: .12em;
+  font: 700 .72rem/1 var(--fo);
+  letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--gray);
   margin-top: 4px;
@@ -469,8 +484,8 @@ input, button, textarea, select {
 }
 
 .phase-num {
-  font: 700 .56rem/1 var(--fo);
-  letter-spacing: .16em;
+  font: 700 .72rem/1 var(--fo);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--cyan);
   margin-bottom: 6px;
@@ -487,7 +502,7 @@ input, button, textarea, select {
 }
 
 .phase-stats { display: flex; flex-direction: column; gap: 3px; margin-bottom: 14px; }
-.phase-stat { font: 500 .7rem/1.4 var(--fb); color: var(--gray); }
+.phase-stat { font: 500 .78rem/1.4 var(--fb); color: var(--gray); }
 .phase-stat strong { color: rgba(255,255,255,.8); font-weight: 600; }
 
 .phase-dates {
@@ -506,7 +521,7 @@ input, button, textarea, select {
 }
 
 .date-day { font: 700 .78rem/1 var(--fo); color: #fff; }
-.date-time { font: 400 .68rem/1 var(--fo); color: var(--cyan); white-space: nowrap; }
+.date-time { font: 400 .72rem/1 var(--fo); color: var(--cyan); white-space: nowrap; }
 .phase.final .date-time { color: var(--gold); }
 
 /* ── TEAMS ───────────────────────────────── */
@@ -685,15 +700,15 @@ footer {
 .ft-social a:hover { color: var(--cyan); border-color: rgba(0,180,216,.35); }
 
 .ft-col h4 {
-  font: 700 .58rem/1 var(--fo);
-  letter-spacing: .16em;
+  font: 700 .72rem/1 var(--fo);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--gray);
   margin-bottom: 14px;
 }
 
 .ft-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.ft-col ul li a { font: 500 .8rem var(--fb); color: rgba(208,228,240,.45); transition: color .15s; }
+.ft-col ul li a { font: 500 .8rem var(--fb); color: rgba(208,228,240,.68); transition: color .15s; }
 .ft-col ul li a:hover { color: var(--fg); }
 
 .ft-bottom {
@@ -717,10 +732,10 @@ footer {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--cyan);
-  box-shadow: 0 0 8px var(--cyan);
+  filter: drop-shadow(0 1px 4px rgba(0,180,216,.5));
   vertical-align: middle;
   margin: 0 2px;
-  animation: pulse 2s ease-in-out infinite;
+  opacity: .85;
 }
 
 @keyframes pulse {
@@ -921,7 +936,30 @@ footer {
   padding: 10px 14px;
   background: rgba(255,255,255,.03);
   border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
+.res-dl-btn {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(0,180,216,.28);
+  background: rgba(0,180,216,.07);
+  color: rgba(0,180,216,.7);
+  font-size: .72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.res-dl-btn:hover { background: rgba(0,180,216,.18); color: #00B4D8; border-color: rgba(0,180,216,.55); }
+.res-dl-btn:disabled { opacity: .4; cursor: default; }
 
 .rg-rows { padding: 6px 0; }
 
@@ -1324,6 +1362,26 @@ footer {
   justify-content: space-between;
   gap: 8px;
 }
+.sp-dl-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,180,216,.3);
+  background: rgba(0,180,216,.08);
+  color: rgba(0,180,216,.75);
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.sp-dl-btn:hover { background: rgba(0,180,216,.18); color: #00B4D8; border-color: rgba(0,180,216,.6); }
+.sp-dl-btn:disabled { opacity: .45; cursor: default; }
 .sp-group {
   font-size: .85rem;
   font-weight: 600;
