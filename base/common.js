@@ -30,8 +30,9 @@ const PYROCORE = (() => {
   const must = ({ data, error }) => { if (error) throw new Error(error.message); return data; };
 
   const teamLogo = (teams, name) => {
-    const t = (teams || []).find((x) => x.name.toLowerCase() === (name || "").toLowerCase());
-    return t ? `imagenes/equipos/${t.slug}.png` : null;
+    const t = (teams || []).find((x) => x.name.trim().toLowerCase() === (name || "").trim().toLowerCase());
+    const extension = t && ["roadless", "rs-esport", "zota-fem"].includes(t.slug) ? "PNG" : "png";
+    return t ? `imagenes/equipos/${t.slug}.${extension}` : null;
   };
 
   async function fetchFromSupabase(scheduleQuery) {
@@ -44,7 +45,7 @@ const PYROCORE = (() => {
       sb.from("at_teams").select("*").order("name").then(must),
     ]);
     const fmt = (d) => (d ? new Date(d).toLocaleString("es", { dateStyle: "medium", timeStyle: "short" }) : "");
-    return {
+    return normalizeTournamentData({
       tournament: settings?.tournament || {},
       links: settings?.links || {},
       prizes: settings?.prizes || [],
@@ -59,17 +60,27 @@ const PYROCORE = (() => {
       })),
       sponsors: sponsors.map((s) => ({ id: s.id, name: s.name, logo: s.logo_url, url: s.url })),
       teams: teams.map((t) => ({ id: t.id, name: t.name, slug: t.slug, country: t.country, active: t.active, instagram: t.instagram || "" })),
-    };
+    });
   }
 
   async function loadData() {
     if (sb) return fetchFromSupabase();
     const res = await fetch(`data.json?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error("No se pudo cargar data.json");
-    return res.json();
+    return normalizeTournamentData(await res.json());
   }
 
-  const PHASES = ["Octavos de final", "Cuartos de final", "Semifinal", "Final"];
+  const PHASES = ["Cuartos de final", "Semifinal", "Final"];
+  const normalizePhase = (phase) => {
+    const value = (phase || "").trim();
+    const aliases = {
+      "octavos": PHASES[0], "octavos de final": PHASES[0],
+      "cuartos": PHASES[0], "cuartos de final": PHASES[0],
+      "semi": PHASES[1], "semifinal": PHASES[1], "semifinales": PHASES[1],
+      "final": PHASES[2], "gran final": PHASES[2],
+    };
+    return aliases[value.toLowerCase()] || value;
+  };
   const STATES = {
     abierto: "Inscripciones abiertas",
     cerrado: "Cerrado",
@@ -119,7 +130,7 @@ const PYROCORE = (() => {
     return sortRows(entries);
   };
 
-  const DEFAULT_RULES = {
+  const LEGACY_RULES = {
     rulesText: [
       "Nivel mínimo: Todos los jugadores pertenecientes a la región norte deben de tener un nivel de cuenta +40, para jugadores de otras regiones no aplica.",
       "Equipos incompletos: La organización no se hace responsable de jugadores que no ingresen a la sala ni por fallas de conexión.",
@@ -139,6 +150,33 @@ const PYROCORE = (() => {
     prohibitedText: ["Hacks o bugs.", "Emuladores.", "Faltas de respeto."].join("\n"),
     rulesNote: "Jugador FFWS no registrado no tendrá derecho a jugar en las demás fases.",
   };
+  const DEFAULT_RULES = {
+    rulesText: [
+      "Nivel mínimo: Todos los jugadores deben tener nivel de cuenta 40 como mínimo. Esto no aplica para jugadores de otras regiones, quienes deben notificar a la organización.",
+      "Equipos incompletos: La organización no se hace responsable de jugadores que no ingresen a sala.",
+      "Sistema de comunicación: Se utilizará Discord a partir de semifinales. De no ingresar, el equipo obtendrá una sanción en puntuación.",
+      "Tag o iniciales: En cuartos no se solicitarán tags. Para semifinal se solicitarán 2/4 con tag y para final 3/4 con tag; de lo contrario habrá sanción en puntuación.",
+      "Jugadores FFWS: Queda totalmente prohibido su ingreso a la competencia. Es un torneo únicamente para comunidad.",
+    ].join("\n"),
+    clarificationsText: ["Respetar casillas asignadas.", "Torneo solo móvil.", "2/4 con tag obligatorio en semifinal.", "3/4 con tag obligatorio en final.", "Válido lista de eliminación."].join("\n"),
+    prohibitedText: ["Jugadores de liga.", "Emuladores.", "Hacks o bugs.", "Faltas de respeto.", "Infiltraciones a salas."].join("\n"),
+    rulesNote: "",
+  };
+  function normalizeTournamentData(d) {
+    d.tournament ??= {};
+    Object.keys(DEFAULT_RULES).forEach((key) => {
+      const value = d.tournament[key];
+      if (typeof value !== "string" || value.trim() === LEGACY_RULES[key].trim()) {
+        d.tournament[key] = DEFAULT_RULES[key];
+      }
+    });
+    (d.results || []).forEach((g) => { g.phase = normalizePhase(g.phase); });
+    (d.schedule || []).forEach((m) => {
+      m.phase = normalizePhase(m.phase);
+      m.group = (m.group || "").trim().replace(/^G(\d+)$/i, "Grupo $1");
+    });
+    return d;
+  }
   const lines = (txt) => (txt || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const getRules = (t = {}) => {
     const pick = (k) => (typeof t[k] === "string" && t[k].trim() ? t[k] : DEFAULT_RULES[k]);
@@ -153,5 +191,5 @@ const PYROCORE = (() => {
     };
   };
 
-  return { DEFAULT_RULES, getRules, sb, must, fetchFromSupabase, ICONS, esc, safeUrl, safeImg, loadData, total, sortRows, hasTeam, generalRows, groupTag, PHASES, STATES, localTimes, teamLogo };
+  return { DEFAULT_RULES, getRules, normalizePhase, normalizeTournamentData, sb, must, fetchFromSupabase, ICONS, esc, safeUrl, safeImg, loadData, total, sortRows, hasTeam, generalRows, groupTag, PHASES, STATES, localTimes, teamLogo };
 })();

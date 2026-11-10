@@ -53,11 +53,11 @@
 
   const toSlug = (s) => s.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
-  const PHASE_REMAP = { "cuartos": "Cuartos de final", "semifinal": "Semifinal", "final": "Final", "octavos": "Octavos de final" };
-  const normPhase = (p) => PHASE_REMAP[(p || "").trim().toLowerCase()] || (p || "").trim();
+  const normPhase = PYROCORE.normalizePhase;
   const normGroup = (g) => { const m = (g || "").trim().match(/^G(\d+)$/i); return m ? `Grupo ${m[1]}` : (g || "").trim(); };
 
   const normalize = (d) => {
+    PYROCORE.normalizeTournamentData(d);
     d.tournament ??= {}; d.links ??= {};
     d.prizes ??= []; d.schedule ??= []; d.results ??= []; d.sponsors ??= []; d.teams ??= [];
     d.prizes.forEach(p => { p.reason ??= ""; });
@@ -828,30 +828,42 @@
     }
     if (t.id === "ai-apply") {
       if (!aiRows.length) return toast("No hay resultados para aplicar", true);
-      const groupId = $("#ai-group")?.value;
+      const groupId = aiTargetGroupId;
       const gi = data?.results.findIndex((g) => g.id === groupId);
-      if (!data || gi < 0) return toast("Selecciona un grupo destino válido", true);
+      if (!data || gi < 0 || groupId !== $("#ai-group")?.value) return toast("El grupo destino cambió. Procesa la captura de nuevo.", true);
       // collect matched rows from preview selects
       const tbody = $("#ai-preview-body");
-      let applied = 0;
-      tbody?.querySelectorAll("tr").forEach((tr, i) => {
+      const updates = [];
+      const seen = new Set();
+      let validationError = "";
+      tbody?.querySelectorAll("tr").forEach((tr) => {
         const realName = tr.querySelector(`[data-aicol="match"]`)?.value || "";
         if (!realName) return; // omitir
         const rowIdx = data.results[gi].rows.findIndex((r) => (r.team || "").toLowerCase() === realName.toLowerCase());
-        if (rowIdx < 0) return;
+        if (rowIdx < 0) { validationError = "Un equipo ya no pertenece al grupo. Procesa la captura de nuevo."; return; }
+        if (seen.has(rowIdx)) { validationError = "Hay filas asignadas al mismo equipo. Revisa los emparejamientos."; return; }
+        seen.add(rowIdx);
         const kills = Number(tr.querySelector(`[data-aicol="kills"]`)?.value) || 0;
         const placement = Number(tr.querySelector(`[data-aicol="placement"]`)?.value) || 0;
         const penalty = Number(tr.querySelector(`[data-aicol="penalty"]`)?.value) || 0;
-        // accumulate
-        data.results[gi].rows[rowIdx].kills = (Number(data.results[gi].rows[rowIdx].kills) || 0) + kills;
-        data.results[gi].rows[rowIdx].placement = (Number(data.results[gi].rows[rowIdx].placement) || 0) + placement;
-        data.results[gi].rows[rowIdx].penalty = (Number(data.results[gi].rows[rowIdx].penalty) || 0) + penalty;
-        applied++;
+        if (![kills, placement, penalty].every((n) => Number.isSafeInteger(n) && n >= 0)) {
+          validationError = "Los puntajes deben ser números enteros mayores o iguales a 0."; return;
+        }
+        updates.push({ rowIdx, kills, placement, penalty });
       });
-      if (!applied) return toast("Ningún equipo emparejado — revisa los selects de 'Equipo real'", true);
-      touchedGroups.add(data.results[gi].id);
+      if (validationError) return toast(validationError, true);
+      if (!updates.length) return toast("Ningún equipo emparejado — revisa los selects de 'Equipo real'", true);
+      updates.forEach(({ rowIdx, kills, placement, penalty }) => {
+        const row = data.results[gi].rows[rowIdx];
+        row.kills = (Number(row.kills) || 0) + kills;
+        row.placement = (Number(row.placement) || 0) + placement;
+        row.penalty = (Number(row.penalty) || 0) + penalty;
+      });
+      touch(gi);
       renderResults(); markDirty(); renderAiGroupTeams();
-      toast(`${applied} equipos acumulados en "${data.results[gi].title}". Pulsa Guardar.`);
+      resetAiPreview();
+      $("#ai-status").textContent = `Resultados acumulados en ${data.results[gi].phase} · ${data.results[gi].title}. Pulsa Guardar cambios para publicarlos.`;
+      toast(`${updates.length} equipos acumulados en "${data.results[gi].title}". Pulsa Guardar.`);
     }
   });
 
@@ -870,6 +882,17 @@
   // ── IA Calculator ──────────────────────────────────────────
   const AI_KEY_STORAGE = "prc_ai_key";
   let aiRows = [];
+  let aiTargetGroupId = null;
+  let aiRequestVersion = 0;
+  const resetAiPreview = () => {
+    aiRequestVersion++;
+    aiRows = [];
+    aiTargetGroupId = null;
+    $("#ai-result-card").hidden = true;
+    $("#ai-preview-body").innerHTML = "";
+    $("#ai-json-out").textContent = "";
+    $("#ai-status").textContent = "";
+  };
 
   const loadAiKey = () => { try { return localStorage.getItem(AI_KEY_STORAGE) || ""; } catch(_) { return ""; } };
   const saveAiKey = (k) => { try { localStorage.setItem(AI_KEY_STORAGE, k); } catch(_) {} };
@@ -884,7 +907,8 @@
     return dp[m][n];
   };
   const fuzzyMatch = (extracted, candidates) => {
-    const low = extracted.toLowerCase();
+    const low = extracted.trim().toLowerCase();
+    if (!low) return null;
     // exact match first
     const exact = candidates.find((c) => c.toLowerCase() === low);
     if (exact) return exact;
@@ -921,8 +945,10 @@
     if (!data) return;
     const aiPhase = $("#ai-phase");
     if (!aiPhase) return;
-    const phases = phasesOf(data.results);
+    const previous = aiPhase.value;
+    const phases = PHASES.filter((p) => data.results.some((g) => g.phase === p && g.kind !== "general"));
     aiPhase.innerHTML = phases.map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("") || `<option value="">Sin fases</option>`;
+    aiPhase.value = phases.includes(previous) ? previous : phases.includes(curPhase) ? curPhase : phases[0] || "";
     // trigger group update
     aiPhase.dispatchEvent(new Event("change"));
   };
@@ -931,12 +957,16 @@
     const phase = $("#ai-phase")?.value;
     const aiGroup = $("#ai-group");
     if (!aiGroup || !data) return;
+    const previous = aiGroup.value;
+    resetAiPreview();
     const groups = data.results.filter((g) => g.phase === phase && g.kind !== "general");
     aiGroup.innerHTML = groups.map((g) => `<option value="${esc(g.id)}">${esc(g.title)}</option>`).join("") || `<option value="">Sin grupos en esta fase</option>`;
+    if (groups.some((g) => g.id === previous)) aiGroup.value = previous;
     renderAiGroupTeams();
   });
 
-  $("#ai-group")?.addEventListener("change", renderAiGroupTeams);
+  $("#ai-group")?.addEventListener("change", () => { resetAiPreview(); renderAiGroupTeams(); });
+  $("#ai-files")?.addEventListener("change", resetAiPreview);
 
   document.querySelector("#menu button[data-p='ai']")?.addEventListener("click", () => {
     populateAiSelectors();
@@ -955,8 +985,12 @@
     if (!files || !files.length) return toast("Selecciona al menos una imagen", true);
     const groupId = $("#ai-group")?.value;
     const gi = data?.results.findIndex((g) => g.id === groupId);
-    if (!data || gi < 0) return toast("Selecciona un grupo destino válido", true);
+    if (!data || gi == null || gi < 0 || data.results[gi].kind === "general") return toast("Selecciona un grupo destino válido", true);
     const groupTeams = data.results[gi].rows.map((r) => r.team).filter((t) => (t || "").trim());
+    if (!groupTeams.length) return toast("Agrega equipos al grupo antes de procesar la captura", true);
+    resetAiPreview();
+    const requestVersion = aiRequestVersion;
+    const targetGroup = data.results[gi];
 
     const btn = $("#ai-process");
     btn.disabled = true;
@@ -980,7 +1014,7 @@
       status.textContent = "Enviando a Claude Haiku…";
 
       const teamHint = groupTeams.length
-        ? `\n\nLos equipos registrados en este grupo son: ${groupTeams.map((t) => `"${t}"`).join(", ")}. Usa exactamente esos nombres si los reconoces.`
+        ? `\n\nDestino: ${targetGroup.phase} · ${targetGroup.title}. Los equipos registrados en este grupo son: ${JSON.stringify(groupTeams)}. Usa exactamente esos nombres si los reconoces. No inventes equipos ni puntajes. Si hay varias capturas de la misma sala, combina su información sin duplicar equipos. Cada equipo debe aparecer una sola vez.`
         : "";
 
       const systemPrompt = `Eres un asistente especializado en extraer resultados de torneos de Free Fire. Extraes tablas de resultados de capturas de pantalla en JSON estructurado.`;
@@ -1018,12 +1052,18 @@ Solo el JSON array, sin texto adicional.`;
       }
 
       const result = await resp.json();
+      if (requestVersion !== aiRequestVersion || $("#ai-group")?.value !== groupId || !data.results.includes(targetGroup)) return;
       const text = result.content?.[0]?.text || "";
       const match = text.match(/\[[\s\S]*\]/);
       if (!match) throw new Error("No se encontró JSON en la respuesta");
 
       aiRows = JSON.parse(match[0]);
       if (!Array.isArray(aiRows)) throw new Error("Respuesta no es un array");
+      if (!aiRows.length || aiRows.some((r) => !r || typeof r.team !== "string" || ![r.kills, r.placement, r.penalty].every((n) => Number.isSafeInteger(n) && n >= 0))) {
+        aiRows = [];
+        throw new Error("La IA no devolvió equipos con puntajes válidos. Vuelve a procesar la captura.");
+      }
+      aiTargetGroupId = groupId;
 
       // fuzzy match each extracted row to group's team names
       const tbody = $("#ai-preview-body");
@@ -1060,7 +1100,7 @@ Solo el JSON array, sin texto adicional.`;
       $("#ai-json-out").textContent = JSON.stringify(aiRows, null, 2);
       $("#ai-result-card").hidden = false;
       const autoMatched = matchedTeams.filter(Boolean).length;
-      status.textContent = `✓ ${aiRows.length} extraídos, ${autoMatched} emparejados automáticamente`;
+      status.textContent = `✓ ${targetGroup.phase} · ${targetGroup.title}: ${aiRows.length} extraídos, ${autoMatched} emparejados automáticamente`;
 
     } catch (err) {
       status.textContent = "Error: " + err.message;

@@ -27,6 +27,8 @@ if (burgerBtn && hdrNav) {
         const el = document.getElementById(id);
         if(el) el.textContent = '00';
       });
+      window._cdTarget = null;
+      window.dispatchEvent(new Event('countdown:expired'));
       return;
     }
     const dEl = document.getElementById('cdD');
@@ -40,6 +42,37 @@ if (burgerBtn && hdrNav) {
   }
   tick(); setInterval(tick, 1000);
 })();
+
+/* Two equal, non-shrinking sets make the logo loop seamless at every width. */
+let countdownLogoObserver;
+function renderCountdownLogos(container, rows, teams) {
+  countdownLogoObserver?.disconnect();
+  container.replaceChildren();
+  if (!rows.length) return;
+  container.innerHTML = '<div class="cd-logo-window"><div class="cd-logos-track"></div></div><button type="button" class="cd-pause" aria-label="Pausar logos" aria-pressed="false"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 3h3v10H4zm5 0h3v10H9z"/></svg></button>';
+  const viewport = container.querySelector('.cd-logo-window');
+  const track = container.querySelector('.cd-logos-track');
+  const toggle = container.querySelector('button');
+  let paused = false;
+  toggle.addEventListener('click', () => {
+    paused = !paused;
+    track.style.animationPlayState = paused ? 'paused' : 'running';
+    toggle.setAttribute('aria-pressed', String(paused));
+    toggle.setAttribute('aria-label', paused ? 'Reanudar logos' : 'Pausar logos');
+    toggle.innerHTML = paused ? '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="m5 2 9 6-9 6z"/></svg>' : '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 3h3v10H4zm5 0h3v10H9z"/></svg>';
+  });
+  function fill() {
+    const itemWidth = matchMedia('(max-width:600px)').matches ? 35 : 50;
+    const repeats = Math.max(1, Math.ceil(viewport.clientWidth / (rows.length * itemWidth)));
+    const sequence = Array.from({length:repeats}, (_, repeat) => rows.map(r => `<img src="${PYROCORE.esc(PYROCORE.teamLogo(teams, r.team) || 'logo.png')}" alt="${repeat ? '' : PYROCORE.esc(r.team)}" ${repeat ? 'aria-hidden="true"' : ''} title="${PYROCORE.esc(r.team)}" onerror="this.onerror=null;this.src='logo.png'">`).join('')).join('');
+    track.innerHTML = `<div class="cd-logo-set">${sequence}</div><div class="cd-logo-set" aria-hidden="true">${sequence}</div>`;
+    track.style.setProperty('--cd-dur', `${Math.max(14, rows.length * repeats * 2)}s`);
+    track.style.animationPlayState = paused ? 'paused' : 'running';
+  }
+  fill();
+  countdownLogoObserver = new ResizeObserver(fill);
+  countdownLogoObserver.observe(viewport);
+}
 
 /* ── TEAMS RENDER ────────────────────────── */
 (function() {

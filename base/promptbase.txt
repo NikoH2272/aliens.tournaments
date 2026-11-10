@@ -130,7 +130,6 @@ Crea una sección visual que explique cómo avanza la competición.
 Debe contemplar estructuras configurables como:
 
 - Fase clasificatoria.
-- Octavos de final.
 - Cuartos de final.
 - Semifinales.
 - Gran final.
