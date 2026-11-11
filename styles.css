@@ -1269,9 +1269,9 @@ img[src*="imagenes/equipos/invading-esport.png"] {
 }
 
 .score-qualification { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; padding:18px 0; border-bottom:1px solid #304153; }
-.score-qualification strong { color:#85e3bc; font:700 1.4rem var(--fo); }
+.score-qualification strong { color:#8dd8ff; font:700 1.4rem var(--fo); }
 .score-qualification span { color:#adc0cf; font-size:.7rem; }
-.score-table tbody .score-qualified { background:#17352e; }
-.score-table .score-qualified td:first-child { color:#85e3bc; }
+.score-table tbody .score-qualified { background:#12344d; }
+.score-table .score-qualified td:first-child { color:#8dd8ff; }
 .score-table tbody .score-first.score-qualified { background:#f1e5d2; }
 .score-table .score-first.score-qualified td:first-child { color:#101923; }

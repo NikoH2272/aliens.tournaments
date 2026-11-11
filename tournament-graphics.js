@@ -168,61 +168,72 @@ window.TournamentGraphics = (() => {
     const pageSize = 72;
     const pageCount = Math.ceil(rows.length / pageSize);
     const hasScores = scored(rows);
+    const top = leaders(rows);
     const qualify = Math.max(0, Math.floor(Number(group.qualify) || 0));
     for (let page = 0; page < pageCount; page++) {
       const pageRows = rows.slice(page * pageSize, (page + 1) * pageSize);
       const columnCount = pageRows.length > 36 ? 3 : pageRows.length > 12 ? 2 : 1;
       const rowsPerColumn = Math.ceil(pageRows.length / columnCount);
-      const columnWidth = 620;
-      const columnGap = 24;
-      const margin = 32;
-      const tableY = 164;
-      const rowHeight = 52;
+      const columnWidth = 860;
+      const columnGap = 28;
+      const margin = 48;
+      const tableY = 390;
+      const rowHeight = 48;
       const canvas = document.createElement('canvas');
       canvas.width = margin * 2 + columnCount * columnWidth + (columnCount - 1) * columnGap;
-      canvas.height = tableY + 44 + rowsPerColumn * rowHeight + 56;
+      canvas.height = tableY + 48 + rowsPerColumn * rowHeight + 130;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = colors.bg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      contain(ctx, images['logo.png'], margin, 28, 62, 62);
-      text(ctx, 'TABLA GENERAL', 112, 82, 64, colors.ink, canvas.width - 360, 'left', 900);
-      text(ctx, `${data.tournament?.name || 'Aliens Championship'} · ${group.phase}`, margin, 124, 26, colors.muted, canvas.width - 260);
+      background(ctx, canvas.width, canvas.height, images);
+      contain(ctx, images['logo.png'], margin, 36, 86, 86);
+      text(ctx, 'TABLA GENERAL', 160, 114, 88, colors.ink, canvas.width - 420, 'left', 900);
+      text(ctx, `${data.tournament?.name || 'Aliens Championship'} · ${group.phase}`, margin, 165, 28, colors.muted, canvas.width - 96);
       if (qualify > 0) {
-        text(ctx, group.phase === 'Final' ? `TOP ${qualify}` : `CLASIFICAN ${qualify}`, canvas.width - margin, 68, 28, '#85e3bc', 200, 'right');
-        text(ctx, `${rows.length} EQUIPOS`, canvas.width - margin, 104, 20, colors.muted, 200, 'right');
-      } else text(ctx, `${rows.length} EQUIPOS`, canvas.width - margin, 82, 24, colors.muted, 200, 'right');
-      ctx.fillStyle = colors.cyan;
-      ctx.fillRect(margin, 144, canvas.width - margin * 2, 2);
+        text(ctx, group.phase === 'Final' ? `TOP ${qualify}` : `CLASIFICAN ${qualify}`, canvas.width - margin, 80, 30, '#8dd8ff', 240, 'right');
+        text(ctx, `${rows.length} EQUIPOS`, canvas.width - margin, 120, 22, colors.muted, 240, 'right');
+      } else text(ctx, `${rows.length} EQUIPOS`, canvas.width - margin, 108, 24, colors.muted, 240, 'right');
+      const topWidth = (canvas.width - 96 - 48) / 4;
+      top.forEach((row, index) => {
+        const x = margin + index * (topWidth + 16);
+        ctx.fillStyle = colors.panel;
+        ctx.fillRect(x, 205, topWidth, 140);
+        contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 16, 216, 90, 90);
+        text(ctx, row.team, x + 124, 245, 28, colors.ink, topWidth - 144);
+        text(ctx, `${Number(row.kills) || 0} KILLS`, x + 124, 303, 44, colors.ink, topWidth - 144, 'left', 900);
+        ctx.fillStyle = colors.cyan;
+        ctx.fillRect(x, 342, topWidth, 3);
+      });
+      if (!top.length) text(ctx, 'RESULTADOS PENDIENTES', margin, 280, 36, colors.muted);
+      const numericColumns = [610, 684, 756, 838];
       for (let column = 0; column < columnCount; column++) {
         const x = margin + column * (columnWidth + columnGap);
         ctx.fillStyle = '#1b2737';
-        ctx.fillRect(x, tableY, columnWidth, 36);
-        text(ctx, '#', x + 12, tableY + 25, 20, colors.muted);
-        text(ctx, 'EQUIPO', x + 100, tableY + 25, 20, colors.muted);
-        text(ctx, 'KILLS', x + 500, tableY + 25, 20, colors.muted, undefined, 'right');
-        text(ctx, 'PUNTOS', x + 602, tableY + 25, 20, colors.muted, undefined, 'right');
+        ctx.fillRect(x, tableY, columnWidth, 40);
+        text(ctx, 'POS.', x + 12, tableY + 27, 18, colors.muted);
+        text(ctx, 'EQUIPO', x + 106, tableY + 27, 18, colors.muted);
+        ['P. POS.', 'KILLS', 'SANC.', 'TOTAL'].forEach((label, index) =>
+          text(ctx, label, x + numericColumns[index], tableY + 27, 18, colors.muted, undefined, 'right'));
         const entries = pageRows.slice(column * rowsPerColumn, (column + 1) * rowsPerColumn);
         entries.forEach((row, index) => {
           const rank = page * pageSize + column * rowsPerColumn + index + 1;
-          const y = tableY + 44 + index * rowHeight;
+          const y = tableY + 48 + index * rowHeight;
           const first = rank === 1 && hasScores;
           const qualified = hasScores && rank <= qualify;
           const ink = first ? colors.bg : colors.ink;
-          ctx.fillStyle = first ? colors.ink : qualified ? '#17352e' : index % 2 ? '#101722' : '#141e2b';
+          ctx.fillStyle = first ? colors.ink : qualified ? '#12344d' : index % 2 ? '#101722' : '#141e2b';
           ctx.fillRect(x, y, columnWidth, rowHeight - 1);
-          text(ctx, String(rank).padStart(2, '0'), x + 12, y + 35, 26, qualified && !first ? '#85e3bc' : ink);
-          contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 52, y + 7, 38, 38);
-          text(ctx, row.team, x + 100, y + 35, 30, ink, 330);
-          text(ctx, Number(row.kills) || 0, x + 500, y + 35, 30, ink, 64, 'right', 600);
-          text(ctx, total(row), x + 602, y + 35, 36, ink, 84, 'right', 900);
+          text(ctx, String(rank).padStart(2, '0'), x + 12, y + 32, 25, qualified && !first ? '#8dd8ff' : ink);
+          contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 58, y + 5, 36, 36);
+          text(ctx, row.team, x + 106, y + 32, 25, ink, 410);
+          [Number(row.placement) || 0, Number(row.kills) || 0, Number(row.penalty) || 0, total(row)].forEach((value, index) =>
+            text(ctx, value, x + numericColumns[index], y + 32, index === 3 ? 30 : 25, ink, 68, 'right', index === 3 ? 900 : 600));
           if (rank === qualify && hasScores) {
-            ctx.fillStyle = '#85e3bc';
+            ctx.fillStyle = '#8dd8ff';
             ctx.fillRect(x, y + rowHeight - 2, columnWidth, 2);
           }
         });
       }
-      text(ctx, qualify > 0 ? 'Verde = dentro del corte provisional' : 'Puntos = posición + kills − sanciones', margin, canvas.height - 16, 20, colors.muted);
-      if (pageCount > 1) text(ctx, `Página ${page + 1} / ${pageCount}`, canvas.width - margin, canvas.height - 16, 20, colors.muted, undefined, 'right');
+      text(ctx, qualify > 0 ? 'Azul = dentro del corte provisional' : 'Puntos = posición + kills − sanciones', margin, canvas.height - 100, 20, colors.muted);
+      if (pageCount > 1) text(ctx, `Página ${page + 1} / ${pageCount}`, canvas.width - margin, canvas.height - 100, 20, colors.muted, undefined, 'right');
       const suffix = pageCount > 1 ? `-${page + 1}de${pageCount}` : '';
       await save(canvas, `tabla-general-${slug(group.phase)}${suffix}.png`);
     }
