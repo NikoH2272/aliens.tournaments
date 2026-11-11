@@ -716,18 +716,16 @@ input[data-bind][type=date]{color-scheme:dark}
 
       <!-- Cargar sala -->
       <div class="row-card">
-        <div class="row-head"><b>Procesar sala</b></div>
-        <p class="hint" style="margin-bottom:12px">
-          Sube la captura del resultado de sala. La IA extrae los nombres y puntajes, luego los empareja con los equipos del grupo.
-          Puedes cargar varias salas una por una — los puntos se <b>acumulan</b>.
-        </p>
+        <div class="row-head"><b>Capturas del grupo</b></div>
+        <p class="hint">Sube las 3 capturas del lobby para identificar a los equipos y luego 1 o 2 capturas de resultados por cada sala.</p>
         <div class="field">
-          <label>Captura(s) de esta sala</label>
-          <input type="file" id="ai-files" accept="image/*" multiple>
+          <label for="ai-lobby">Lobby · 3 capturas</label>
+          <input type="file" id="ai-lobby" accept="image/*" multiple>
         </div>
+        <div id="ai-room-files"></div>
         <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
-          <button class="btn" id="ai-process">Procesar con IA →</button>
-          <span id="ai-status" class="hint"></span>
+          <button class="btn" id="ai-process">Calcular resultados →</button>
+          <span id="ai-status" class="hint" role="status"></span>
         </div>
       </div>
 
@@ -743,6 +741,7 @@ input[data-bind][type=date]{color-scheme:dark}
         <p class="hint" style="margin-bottom:10px">
           Columna <b>Equipo real</b>: selecciona el equipo del grupo que corresponde a cada fila extraída.
           Los equipos sin emparejar se omiten. Revisa los puntajes, pulsa "Acumular en grupo" y después "Guardar cambios" para publicarlos.
+          Si las capturas solo muestran el puesto, completa manualmente los puntos de posición.
         </p>
         <div class="table-wrap">
           <table class="edit-table">
@@ -771,6 +770,6 @@ input[data-bind][type=date]{color-scheme:dark}
 <script src="base/supabase.min.js"></script>
 <script src="base/config.js"></script>
 <script src="base/common.js?v=20261110-3"></script>
-<script src="base/admin.js?v=20261110-3"></script>
+<script src="base/admin.js?v=20261110-4"></script>
 </body>
 </html>
