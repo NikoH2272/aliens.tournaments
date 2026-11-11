@@ -55,6 +55,8 @@ window.TournamentGraphics = (() => {
       const rows = active ? rowsFor(data, active) : [];
       const topKills = leaders(rows);
       const hasScores = scored(rows);
+      const qualify = Math.max(0, Math.floor(Number(active?.qualify) || 0));
+      const showQualification = active?.kind === 'general' && qualify > 0;
       const schedule = (data.schedule || []).find(s => s.phase === phase && s.group?.toLowerCase() === active?.title?.toLowerCase());
       body.innerHTML = `<div class="score-group-picker" role="group" aria-label="Grupo de resultados">${phaseGroups.map(g => `<button data-score-group="${esc(g.id)}" aria-pressed="${g.id === groupId}">${esc(g.title || 'Grupo')}</button>`).join('')}</div>
         <article class="scoreboard" data-gid="${esc(groupId)}">
@@ -63,6 +65,7 @@ window.TournamentGraphics = (() => {
             <div><h3>RESULTADOS</h3><p>${esc(data.tournament?.name || 'Aliens Championship')} · ${esc(phase)} · ${esc(active?.title || '')}</p></div>
             <button class="score-download" ${!rows.length ? 'disabled' : ''} aria-label="Descargar resultados de ${esc(active?.title || 'grupo')}">${downloadIcon}<span>Descargar PNG</span></button>
           </header>
+          ${showQualification ? `<div class="score-qualification"><strong>${phase === 'Final' ? `Top ${qualify}` : `Clasifican ${qualify} equipos`}</strong><span>Corte provisional</span></div>` : ''}
           ${hasScores ? `<div class="score-match-stats">${matchStats(data, active).map(stat => `<div><span>${esc(stat.label)}</span><strong>${stat.kills}</strong></div>`).join('')}</div>` : ''}
           <div class="score-kills-heading"><h4>Los más letales</h4><span>TOP 4 · KILLS POR EQUIPO</span></div>
           ${topKills.length ? `<div class="score-killers">${topKills.map((r, i) => `<div class="score-killer">
@@ -72,7 +75,7 @@ window.TournamentGraphics = (() => {
           <div class="score-table-wrap"><table class="score-table">
             <caption class="score-caption">Clasificación de ${esc(active?.title || 'grupo')} · ${esc(phase)}</caption>
             <thead><tr><th scope="col">POS.</th><th scope="col">EQUIPO</th><th scope="col"><abbr title="Puntos de posición">P. POS.</abbr></th><th scope="col">KILLS</th><th scope="col"><abbr title="Sanciones">SANC.</abbr></th><th scope="col">TOTAL</th></tr></thead>
-            <tbody>${rows.map((r, i) => `<tr class="${i === 0 && hasScores ? 'score-first' : ''}">
+            <tbody>${rows.map((r, i) => `<tr class="${i === 0 && hasScores ? 'score-first' : ''} ${showQualification && hasScores && i < qualify ? 'score-qualified' : ''}">
               <td>${String(i + 1).padStart(2, '0')}</td><th scope="row"><div class="score-team">${imageHtml(teams, r)}<span>${esc(r.team)}${i === 0 && hasScores ? '<small>LÍDER DE LA TABLA</small>' : ''}</span></div></th>
               <td>${Number(r.placement) || 0}</td><td>${Number(r.kills) || 0}</td><td>${Number(r.penalty) || 0}</td><td class="score-total">${total(r)}</td>
             </tr>`).join('')}</tbody></table></div>
@@ -128,7 +131,14 @@ window.TournamentGraphics = (() => {
     if (!img) return;
     const scale = Math.min(w / img.width, h / img.height);
     const iw = img.width * scale, ih = img.height * scale;
+    ctx.save();
+    if (/(?:try-united|mia-corp|invading-esport)\.png(?:$|\?)/i.test(img.src || '')) {
+      ctx.fillStyle = '#101722';
+      ctx.fillRect(x, y, w, h);
+      ctx.filter = 'grayscale(1) invert(1) contrast(8)';
+    }
     ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+    ctx.restore();
   }
   function background(ctx, width, height, images) {
     ctx.fillStyle = colors.bg; ctx.fillRect(0, 0, width, height);
@@ -157,61 +167,62 @@ window.TournamentGraphics = (() => {
     const images = await assets(teams, rows);
     const pageSize = 72;
     const pageCount = Math.ceil(rows.length / pageSize);
-    const top = leaders(rows);
     const hasScores = scored(rows);
+    const qualify = Math.max(0, Math.floor(Number(group.qualify) || 0));
     for (let page = 0; page < pageCount; page++) {
       const pageRows = rows.slice(page * pageSize, (page + 1) * pageSize);
-      const columnCount = pageRows.length > 36 ? 3 : 2;
+      const columnCount = pageRows.length > 36 ? 3 : pageRows.length > 12 ? 2 : 1;
       const rowsPerColumn = Math.ceil(pageRows.length / columnCount);
-      const columnWidth = 860;
-      const columnGap = 28;
-      const tableY = 390;
-      const rowHeight = 48;
+      const columnWidth = 620;
+      const columnGap = 24;
+      const margin = 32;
+      const tableY = 164;
+      const rowHeight = 52;
       const canvas = document.createElement('canvas');
-      canvas.width = 96 + columnCount * columnWidth + (columnCount - 1) * columnGap;
-      canvas.height = tableY + 48 + rowsPerColumn * rowHeight + 110;
+      canvas.width = margin * 2 + columnCount * columnWidth + (columnCount - 1) * columnGap;
+      canvas.height = tableY + 44 + rowsPerColumn * rowHeight + 56;
       const ctx = canvas.getContext('2d');
-      background(ctx, canvas.width, canvas.height, images);
-      contain(ctx, images['logo.png'], 48, 36, 86, 86);
-      text(ctx, 'TABLA GENERAL', 160, 114, 88, colors.ink, canvas.width - 360, 'left', 900);
-      text(ctx, `${data.tournament?.name || 'Aliens Championship'} · ${group.phase}`, 50, 165, 28, colors.muted, canvas.width - 96);
-      text(ctx, `${rows.length} EQUIPOS${pageCount > 1 ? ` · PÁGINA ${page + 1}/${pageCount}` : ''}`, canvas.width - 48, 108, 24, colors.muted, 300, 'right');
-      const topWidth = (canvas.width - 96 - 48) / 4;
-      top.forEach((row, index) => {
-        const x = 48 + index * (topWidth + 16);
-        ctx.fillStyle = colors.panel;
-        ctx.fillRect(x, 205, topWidth, 140);
-        contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 16, 216, 90, 90);
-        text(ctx, row.team, x + 124, 245, 28, colors.ink, topWidth - 144);
-        text(ctx, `${Number(row.kills) || 0} KILLS`, x + 124, 303, 44, colors.ink, topWidth - 144, 'left', 900);
-        ctx.fillStyle = colors.cyan;
-        ctx.fillRect(x, 342, topWidth, 3);
-      });
-      if (!top.length) text(ctx, 'RESULTADOS PENDIENTES', 48, 280, 36, colors.muted);
-      const numericColumns = [610, 684, 756, 838];
+      ctx.fillStyle = colors.bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      contain(ctx, images['logo.png'], margin, 28, 62, 62);
+      text(ctx, 'TABLA GENERAL', 112, 82, 64, colors.ink, canvas.width - 360, 'left', 900);
+      text(ctx, `${data.tournament?.name || 'Aliens Championship'} · ${group.phase}`, margin, 124, 26, colors.muted, canvas.width - 260);
+      if (qualify > 0) {
+        text(ctx, group.phase === 'Final' ? `TOP ${qualify}` : `CLASIFICAN ${qualify}`, canvas.width - margin, 68, 28, '#85e3bc', 200, 'right');
+        text(ctx, `${rows.length} EQUIPOS`, canvas.width - margin, 104, 20, colors.muted, 200, 'right');
+      } else text(ctx, `${rows.length} EQUIPOS`, canvas.width - margin, 82, 24, colors.muted, 200, 'right');
+      ctx.fillStyle = colors.cyan;
+      ctx.fillRect(margin, 144, canvas.width - margin * 2, 2);
       for (let column = 0; column < columnCount; column++) {
-        const x = 48 + column * (columnWidth + columnGap);
+        const x = margin + column * (columnWidth + columnGap);
         ctx.fillStyle = '#1b2737';
-        ctx.fillRect(x, tableY, columnWidth, 40);
-        text(ctx, 'POS.', x + 12, tableY + 27, 18, colors.muted);
-        text(ctx, 'EQUIPO', x + 106, tableY + 27, 18, colors.muted);
-        ['P. POS.', 'KILLS', 'SANC.', 'TOTAL'].forEach((label, index) =>
-          text(ctx, label, x + numericColumns[index], tableY + 27, 18, colors.muted, undefined, 'right'));
+        ctx.fillRect(x, tableY, columnWidth, 36);
+        text(ctx, '#', x + 12, tableY + 25, 20, colors.muted);
+        text(ctx, 'EQUIPO', x + 100, tableY + 25, 20, colors.muted);
+        text(ctx, 'KILLS', x + 500, tableY + 25, 20, colors.muted, undefined, 'right');
+        text(ctx, 'PUNTOS', x + 602, tableY + 25, 20, colors.muted, undefined, 'right');
         const entries = pageRows.slice(column * rowsPerColumn, (column + 1) * rowsPerColumn);
         entries.forEach((row, index) => {
           const rank = page * pageSize + column * rowsPerColumn + index + 1;
-          const y = tableY + 48 + index * rowHeight;
+          const y = tableY + 44 + index * rowHeight;
           const first = rank === 1 && hasScores;
+          const qualified = hasScores && rank <= qualify;
           const ink = first ? colors.bg : colors.ink;
-          ctx.fillStyle = first ? colors.ink : index % 2 ? '#101722' : '#141e2b';
+          ctx.fillStyle = first ? colors.ink : qualified ? '#17352e' : index % 2 ? '#101722' : '#141e2b';
           ctx.fillRect(x, y, columnWidth, rowHeight - 1);
-          text(ctx, String(rank).padStart(2, '0'), x + 12, y + 32, 25, ink);
-          contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 58, y + 5, 36, 36);
-          text(ctx, row.team, x + 106, y + 32, 25, ink, 410);
-          [Number(row.placement) || 0, Number(row.kills) || 0, Number(row.penalty) || 0, total(row)].forEach((value, index) =>
-            text(ctx, value, x + numericColumns[index], y + 32, index === 3 ? 30 : 25, ink, 68, 'right', index === 3 ? 900 : 600));
+          text(ctx, String(rank).padStart(2, '0'), x + 12, y + 35, 26, qualified && !first ? '#85e3bc' : ink);
+          contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 52, y + 7, 38, 38);
+          text(ctx, row.team, x + 100, y + 35, 30, ink, 330);
+          text(ctx, Number(row.kills) || 0, x + 500, y + 35, 30, ink, 64, 'right', 600);
+          text(ctx, total(row), x + 602, y + 35, 36, ink, 84, 'right', 900);
+          if (rank === qualify && hasScores) {
+            ctx.fillStyle = '#85e3bc';
+            ctx.fillRect(x, y + rowHeight - 2, columnWidth, 2);
+          }
         });
       }
+      text(ctx, qualify > 0 ? 'Verde = dentro del corte provisional' : 'Puntos = posición + kills − sanciones', margin, canvas.height - 16, 20, colors.muted);
+      if (pageCount > 1) text(ctx, `Página ${page + 1} / ${pageCount}`, canvas.width - margin, canvas.height - 16, 20, colors.muted, undefined, 'right');
       const suffix = pageCount > 1 ? `-${page + 1}de${pageCount}` : '';
       await save(canvas, `tabla-general-${slug(group.phase)}${suffix}.png`);
     }
@@ -221,7 +232,7 @@ window.TournamentGraphics = (() => {
     if (!group) return;
     const rows = rowsFor(data, group);
     if (!rows.length) return;
-    if (group.kind === 'general' && rows.length > 12) return downloadGeneralResults(data, group, rows);
+    if (group.kind === 'general') return downloadGeneralResults(data, group, rows);
     const teams = data.teams || [];
     const images = await assets(teams, rows);
     const top = leaders(rows);
