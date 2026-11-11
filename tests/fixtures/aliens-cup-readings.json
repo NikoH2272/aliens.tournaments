@@ -1,0 +1,1083 @@
+{
+  "roster": [
+    {
+      "slot": 1,
+      "id": "row-1",
+      "team": "ROADLESS"
+    },
+    {
+      "slot": 2,
+      "id": "row-2",
+      "team": "ALIENS ESPORT"
+    },
+    {
+      "slot": 3,
+      "id": "row-3",
+      "team": "NTH"
+    },
+    {
+      "slot": 4,
+      "id": "row-4",
+      "team": "CSUR"
+    },
+    {
+      "slot": 5,
+      "id": "row-5",
+      "team": "TRY UNITED"
+    },
+    {
+      "slot": 6,
+      "id": "row-6",
+      "team": "RUSHEO E-SPORT"
+    },
+    {
+      "slot": 7,
+      "id": "row-7",
+      "team": "ARIZON ESPORT"
+    },
+    {
+      "slot": 8,
+      "id": "row-8",
+      "team": "FN ESPORT"
+    },
+    {
+      "slot": 9,
+      "id": "row-9",
+      "team": "GHOST GAMING"
+    },
+    {
+      "slot": 10,
+      "id": "row-10",
+      "team": "TEAM MAGA ESPORT"
+    },
+    {
+      "slot": 11,
+      "id": "row-11",
+      "team": "GHIDORAX B"
+    },
+    {
+      "slot": 12,
+      "id": "row-12",
+      "team": "WICKERS D"
+    }
+  ],
+  "lobby": [
+    {
+      "slot": 1,
+      "players": [
+        "Ł zwlk pdm",
+        "RS.RuizK!ng7",
+        "B¥ Filipino"
+      ]
+    },
+    {
+      "slot": 2,
+      "players": [
+        "ALN.Kearas",
+        "kins2011",
+        "ALN.MalaK",
+        "ALN.Sosaafxp"
+      ]
+    },
+    {
+      "slot": 3,
+      "players": [
+        "QFD.Krippy",
+        "SF Mels7",
+        "Albimbo CDG"
+      ]
+    },
+    {
+      "slot": 4,
+      "players": []
+    },
+    {
+      "slot": 5,
+      "players": [
+        "Zowa",
+        "BC.Siete7 OL",
+        "Gians.stk",
+        "SSG.Niño"
+      ]
+    },
+    {
+      "slot": 6,
+      "players": [
+        "xBalaguera9_",
+        "MYC.Pavard7",
+        "MYC.C1B3NK",
+        "MYC.Jx7"
+      ]
+    },
+    {
+      "slot": 7,
+      "players": [
+        "ARZ.Rei.11",
+        "ARZ.Legend J",
+        "ARZ.Samy 007"
+      ]
+    },
+    {
+      "slot": 8,
+      "players": [
+        "FN Faith",
+        "CATRIEL FN",
+        "SOTOª AX",
+        "FN PAUL"
+      ]
+    },
+    {
+      "slot": 9,
+      "players": [
+        "AXO.Paisano",
+        "R19.DiazLay",
+        "MYC.Alexking"
+      ]
+    },
+    {
+      "slot": 10,
+      "players": [
+        "TM PRETYBOY",
+        "TM Mr.T",
+        "TM Gelixxx",
+        "MW Mxngu7"
+      ]
+    },
+    {
+      "slot": 11,
+      "players": [
+        "GDX.CHORIPAN",
+        "HmTmaxi7",
+        "Edwerson2410",
+        "GX Ñoker"
+      ]
+    },
+    {
+      "slot": 12,
+      "players": [
+        "WK Dani",
+        "ALG.DAVID",
+        "WK YANFOCUS",
+        "WK PABLO"
+      ]
+    }
+  ],
+  "rooms": [
+    [
+      {
+        "position": 1,
+        "players": [
+          {
+            "name": "TM PRETYBOY",
+            "kills": 9
+          },
+          {
+            "name": "TM Mr.T",
+            "kills": 1
+          },
+          {
+            "name": "TM Gelixxx",
+            "kills": 3
+          },
+          {
+            "name": "MW Mxngu7",
+            "kills": 5
+          }
+        ]
+      },
+      {
+        "position": 2,
+        "players": [
+          {
+            "name": "Zowa",
+            "kills": 3
+          },
+          {
+            "name": "BC.Siete7 OL",
+            "kills": 1
+          },
+          {
+            "name": "Gians.stk",
+            "kills": 3
+          },
+          {
+            "name": "SSG.Niño",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 3,
+        "players": [
+          {
+            "name": "QFD.Krippy",
+            "kills": 1
+          },
+          {
+            "name": "SF Mels7",
+            "kills": 5
+          },
+          {
+            "name": "Albimbo CDG",
+            "kills": 8
+          }
+        ]
+      },
+      {
+        "position": 4,
+        "players": [
+          {
+            "name": "WK Dani",
+            "kills": 3
+          },
+          {
+            "name": "ALG.DAVID",
+            "kills": 2
+          },
+          {
+            "name": "WK YANFOCUS",
+            "kills": 0
+          },
+          {
+            "name": "WK PABLO",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 5,
+        "players": [
+          {
+            "name": "GDX.CHORIPAN",
+            "kills": 1
+          },
+          {
+            "name": "HmTmaxi7",
+            "kills": 3
+          },
+          {
+            "name": "Edwerson2410",
+            "kills": 3
+          },
+          {
+            "name": "GX Ñoker",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 6,
+        "players": [
+          {
+            "name": "Ł zwlk pdm",
+            "kills": 3
+          },
+          {
+            "name": "RS.RuizK!ng7",
+            "kills": 3
+          },
+          {
+            "name": "B¥ Filipino",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 7,
+        "players": [
+          {
+            "name": "AXO.Paisano",
+            "kills": 1
+          },
+          {
+            "name": "R19.DiazLay",
+            "kills": 1
+          },
+          {
+            "name": "MYC.Alexking",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 8,
+        "players": [
+          {
+            "name": "FN Faith",
+            "kills": 2
+          },
+          {
+            "name": "CATRIEL FN",
+            "kills": 3
+          },
+          {
+            "name": "SOTOª AX",
+            "kills": 3
+          },
+          {
+            "name": "FN PAUL",
+            "kills": 6
+          }
+        ]
+      },
+      {
+        "position": 9,
+        "players": [
+          {
+            "name": "ALN.Kearas",
+            "kills": 2
+          },
+          {
+            "name": "kins2011",
+            "kills": 4
+          },
+          {
+            "name": "ALN.MalaK",
+            "kills": 1
+          },
+          {
+            "name": "ALN.Sosaafxp",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 10,
+        "players": [
+          {
+            "name": "ARZ.Rei.11",
+            "kills": 0
+          },
+          {
+            "name": "ARZ.Legend J",
+            "kills": 1
+          },
+          {
+            "name": "ARZ.Samy 007",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 11,
+        "players": [
+          {
+            "name": "xBalaguera9_",
+            "kills": 0
+          },
+          {
+            "name": "MYC.Pavard7",
+            "kills": 0
+          },
+          {
+            "name": "MYC.C1B3NK",
+            "kills": 0
+          },
+          {
+            "name": "MYC.Jx7",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 1,
+        "players": [
+          {
+            "name": "TM PRETYBOY",
+            "kills": 9
+          },
+          {
+            "name": "TM Mr.T",
+            "kills": 1
+          },
+          {
+            "name": "TM Gelixxx",
+            "kills": 3
+          },
+          {
+            "name": "MW Mxngu7",
+            "kills": 5
+          }
+        ]
+      },
+      {
+        "position": 2,
+        "players": [
+          {
+            "name": "Zowa",
+            "kills": 3
+          },
+          {
+            "name": "BC.Siete7 OL",
+            "kills": 1
+          },
+          {
+            "name": "Gians.stk",
+            "kills": 3
+          },
+          {
+            "name": "SSG.Niño",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 3,
+        "players": [
+          {
+            "name": "QFD.Krippy",
+            "kills": 1
+          },
+          {
+            "name": "SF Mels7",
+            "kills": 5
+          },
+          {
+            "name": "Albimbo CDG",
+            "kills": 8
+          }
+        ]
+      },
+      {
+        "position": 4,
+        "players": [
+          {
+            "name": "WK Dani",
+            "kills": 3
+          },
+          {
+            "name": "ALG.DAVID",
+            "kills": 2
+          },
+          {
+            "name": "WK YANFOCUS",
+            "kills": 0
+          },
+          {
+            "name": "WK PABLO",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 5,
+        "players": [
+          {
+            "name": "GDX.CHORIPAN",
+            "kills": 1
+          },
+          {
+            "name": "HmTmaxi7",
+            "kills": 3
+          },
+          {
+            "name": "Edwerson2410",
+            "kills": 3
+          },
+          {
+            "name": "GX Ñoker",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 7,
+        "players": [
+          {
+            "name": "AXO.Paisano",
+            "kills": 1
+          },
+          {
+            "name": "R19.DiazLay",
+            "kills": 1
+          },
+          {
+            "name": "MYC.Alexking",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 8,
+        "players": [
+          {
+            "name": "FN Faith",
+            "kills": 2
+          },
+          {
+            "name": "CATRIEL FN",
+            "kills": 3
+          },
+          {
+            "name": "SOTOª AX",
+            "kills": 3
+          },
+          {
+            "name": "FN PAUL",
+            "kills": 6
+          }
+        ]
+      },
+      {
+        "position": 9,
+        "players": [
+          {
+            "name": "ALN.Kearas",
+            "kills": 2
+          },
+          {
+            "name": "kins2011",
+            "kills": 4
+          },
+          {
+            "name": "ALN.MalaK",
+            "kills": 1
+          },
+          {
+            "name": "ALN.Sosaafxp",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 10,
+        "players": [
+          {
+            "name": "ARZ.Rei.11",
+            "kills": 0
+          },
+          {
+            "name": "ARZ.Legend J",
+            "kills": 1
+          },
+          {
+            "name": "ARZ.Samy 007",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 11,
+        "players": [
+          {
+            "name": "xBalaguera9_",
+            "kills": 0
+          },
+          {
+            "name": "MYC.Pavard7",
+            "kills": 0
+          },
+          {
+            "name": "MYC.C1B3NK",
+            "kills": 0
+          },
+          {
+            "name": "MYC.Jx7",
+            "kills": 0
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "position": 1,
+        "players": [
+          {
+            "name": "Zowa",
+            "kills": 4
+          },
+          {
+            "name": "BC.Siete7 OL",
+            "kills": 0
+          },
+          {
+            "name": "Gians.stk",
+            "kills": 3
+          },
+          {
+            "name": "SSG.Niño",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 2,
+        "players": [
+          {
+            "name": "ALN.Kearas",
+            "kills": 5
+          },
+          {
+            "name": "kins2011",
+            "kills": 3
+          },
+          {
+            "name": "ALN.MalaK",
+            "kills": 4
+          },
+          {
+            "name": "ALN.Sosaafxp",
+            "kills": 6
+          }
+        ]
+      },
+      {
+        "position": 3,
+        "players": [
+          {
+            "name": "FN Faith",
+            "kills": 3
+          },
+          {
+            "name": "CATRIEL FN",
+            "kills": 0
+          },
+          {
+            "name": "SOTOª AX",
+            "kills": 4
+          },
+          {
+            "name": "FN PAUL",
+            "kills": 4
+          }
+        ]
+      },
+      {
+        "position": 4,
+        "players": [
+          {
+            "name": "GDX.CHORIPAN",
+            "kills": 4
+          },
+          {
+            "name": "HmTmaxi7",
+            "kills": 4
+          },
+          {
+            "name": "Edwerson2410",
+            "kills": 2
+          },
+          {
+            "name": "GX Ñoker",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 5,
+        "players": [
+          {
+            "name": "TM PRETYBOY",
+            "kills": 3
+          },
+          {
+            "name": "TM Mr.T",
+            "kills": 1
+          },
+          {
+            "name": "TM Gelixxx",
+            "kills": 4
+          },
+          {
+            "name": "MW Mxngu7",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 6,
+        "players": [
+          {
+            "name": "WK Dani",
+            "kills": 0
+          },
+          {
+            "name": "ALG.DAVID",
+            "kills": 5
+          },
+          {
+            "name": "WK YANFOCUS",
+            "kills": 7
+          },
+          {
+            "name": "WK PABLO",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 7,
+        "players": [
+          {
+            "name": "AXO.Paisano",
+            "kills": 4
+          },
+          {
+            "name": "GD.MAYUS",
+            "kills": 1
+          },
+          {
+            "name": "R19.DiazLay",
+            "kills": 3
+          },
+          {
+            "name": "MYC.Alexking",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 8,
+        "players": [
+          {
+            "name": "QFD.Krippy",
+            "kills": 0
+          },
+          {
+            "name": "SF Mels7",
+            "kills": 1
+          },
+          {
+            "name": "Albimbo CDG",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 9,
+        "players": [
+          {
+            "name": "ARZ.Rei.11",
+            "kills": 1
+          },
+          {
+            "name": "ARZ.Legend J",
+            "kills": 0
+          },
+          {
+            "name": "ARZ.Samy 007",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 10,
+        "players": [
+          {
+            "name": "Ł zwlk pdm",
+            "kills": 1
+          },
+          {
+            "name": "RS.RuizK!ng7",
+            "kills": 0
+          },
+          {
+            "name": "RS.RexxK!ng7",
+            "kills": 0
+          },
+          {
+            "name": "unknownsexo",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 11,
+        "players": [
+          {
+            "name": "MYC.Jx7",
+            "kills": 1
+          },
+          {
+            "name": "MYC.Pavard7",
+            "kills": 2
+          },
+          {
+            "name": "MYC.C1B3NK",
+            "kills": 2
+          },
+          {
+            "name": "xBalak1nn_",
+            "kills": 1
+          }
+        ]
+      },
+      {
+        "position": 1,
+        "players": [
+          {
+            "name": "Zowa",
+            "kills": 4
+          },
+          {
+            "name": "BC.Siete7 OL",
+            "kills": 0
+          },
+          {
+            "name": "Gians.stk",
+            "kills": 3
+          },
+          {
+            "name": "SSG.Niño",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 2,
+        "players": [
+          {
+            "name": "ALN.Kearas",
+            "kills": 5
+          },
+          {
+            "name": "kins2011",
+            "kills": 3
+          },
+          {
+            "name": "ALN.MalaK",
+            "kills": 4
+          },
+          {
+            "name": "ALN.Sosaafxp",
+            "kills": 6
+          }
+        ]
+      },
+      {
+        "position": 3,
+        "players": [
+          {
+            "name": "FN Faith",
+            "kills": 3
+          },
+          {
+            "name": "CATRIEL FN",
+            "kills": 0
+          },
+          {
+            "name": "SOTOª AX",
+            "kills": 4
+          },
+          {
+            "name": "FN PAUL",
+            "kills": 4
+          }
+        ]
+      },
+      {
+        "position": 4,
+        "players": [
+          {
+            "name": "GDX.CHORIPAN",
+            "kills": 4
+          },
+          {
+            "name": "HmTmaxi7",
+            "kills": 4
+          },
+          {
+            "name": "Edwerson2410",
+            "kills": 2
+          },
+          {
+            "name": "GX Ñoker",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 5,
+        "players": [
+          {
+            "name": "TM PRETYBOY",
+            "kills": 3
+          },
+          {
+            "name": "TM Mr.T",
+            "kills": 1
+          },
+          {
+            "name": "TM Gelixxx",
+            "kills": 4
+          },
+          {
+            "name": "MW Mxngu7",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 7,
+        "players": [
+          {
+            "name": "AXO.Paisano",
+            "kills": 4
+          },
+          {
+            "name": "GD.MAYUS",
+            "kills": 1
+          },
+          {
+            "name": "R19.DiazLay",
+            "kills": 3
+          },
+          {
+            "name": "MYC.Alexking",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 8,
+        "players": [
+          {
+            "name": "QFD.Krippy",
+            "kills": 0
+          },
+          {
+            "name": "SF Mels7",
+            "kills": 1
+          },
+          {
+            "name": "Albimbo CDG",
+            "kills": 3
+          }
+        ]
+      },
+      {
+        "position": 9,
+        "players": [
+          {
+            "name": "ARZ.Rei.11",
+            "kills": 1
+          },
+          {
+            "name": "ARZ.Legend J",
+            "kills": 0
+          },
+          {
+            "name": "ARZ.Samy 007",
+            "kills": 0
+          }
+        ]
+      },
+      {
+        "position": 10,
+        "players": [
+          {
+            "name": "Ł zwlk pdm",
+            "kills": 1
+          },
+          {
+            "name": "RS.RuizK!ng7",
+            "kills": 0
+          },
+          {
+            "name": "RS.RexxK!ng7",
+            "kills": 0
+          },
+          {
+            "name": "unknownsexo",
+            "kills": 2
+          }
+        ]
+      },
+      {
+        "position": 11,
+        "players": [
+          {
+            "name": "MYC.Jx7",
+            "kills": 1
+          },
+          {
+            "name": "MYC.Pavard7",
+            "kills": 2
+          },
+          {
+            "name": "MYC.C1B3NK",
+            "kills": 2
+          },
+          {
+            "name": "xBalak1nn_",
+            "kills": 1
+          }
+        ]
+      }
+    ]
+  ],
+  "expected": [
+    [
+      1,
+      9,
+      6,
+      15
+    ],
+    [
+      2,
+      28,
+      11,
+      39
+    ],
+    [
+      3,
+      18,
+      11,
+      29
+    ],
+    [
+      4,
+      0,
+      0,
+      0
+    ],
+    [
+      5,
+      20,
+      21,
+      41
+    ],
+    [
+      6,
+      6,
+      0,
+      6
+    ],
+    [
+      7,
+      2,
+      3,
+      5
+    ],
+    [
+      8,
+      25,
+      11,
+      36
+    ],
+    [
+      9,
+      12,
+      8,
+      20
+    ],
+    [
+      10,
+      28,
+      18,
+      46
+    ],
+    [
+      11,
+      19,
+      13,
+      32
+    ],
+    [
+      12,
+      21,
+      12,
+      33
+    ]
+  ]
+}

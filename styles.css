@@ -818,6 +818,10 @@ footer {
 .score-download svg { width:18px; height:18px; }
 .score-download:hover { background:#1c3040; }
 .score-download:disabled { opacity:.5; cursor:default; }
+.score-match-stats { display:flex; flex-wrap:wrap; gap:20px 36px; padding:20px 0; border-bottom:1px solid #304153; }
+.score-match-stats > div { display:flex; align-items:baseline; gap:12px; }
+.score-match-stats span { color:#adc0cf; font-size:.7rem; }
+.score-match-stats strong { color:#f1e5d2; font:800 1.7rem var(--fo); font-variant-numeric:tabular-nums; }
 .score-kills-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:26px 0 14px; }
 .score-kills-heading h4 { font:700 1.6rem var(--fo); text-transform:uppercase; color:#f1e5d2; }
 .score-kills-heading > span { font-size:.65rem; letter-spacing:.08em; color:#adc0cf; }

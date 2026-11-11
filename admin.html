@@ -686,7 +686,7 @@ input[data-bind][type=date]{color-scheme:dark}
       <!-- API Key -->
       <div class="row-card">
         <div class="row-head"><b>API Key Anthropic</b></div>
-        <p class="hint" style="margin-bottom:12px">Se guarda en este navegador (localStorage). Modelo: claude-haiku-4-5.</p>
+        <p class="hint" style="margin-bottom:12px">La clave se guarda en este navegador. Selecciona el modelo para leer las capturas.</p>
         <div style="display:flex;gap:10px;align-items:flex-end">
           <div class="field" style="margin:0;flex:1">
             <label>Clave API (sk-ant-…)</label>
@@ -694,13 +694,14 @@ input[data-bind][type=date]{color-scheme:dark}
           </div>
           <button class="btn ghost sm" id="ai-save-key" style="margin-bottom:14px">Guardar</button>
         </div>
+        <div class="field"><label for="ai-model">Lectura de capturas</label><select id="ai-model"><option value="claude-sonnet-5-5">Sonnet 5.5 · Mayor precisión</option><option value="claude-haiku-4-5">Haiku 4.5 · Menor costo</option></select></div>
         <p id="ai-key-status" class="hint" style="margin-top:6px"></p>
       </div>
 
       <!-- Selector de grupo destino -->
       <div class="row-card">
         <div class="row-head"><b>Grupo destino</b></div>
-        <p class="hint" style="margin-bottom:12px">Selecciona el grupo que ya creaste. Los resultados de cada sala se acumularán ahí.</p>
+        <p class="hint" style="margin-bottom:12px">Selecciona el grupo que ya creaste. Revisa la correspondencia de las casillas antes de aplicar los resultados.</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="field" style="margin:0;min-width:160px">
             <label>Fase</label>
@@ -717,7 +718,7 @@ input[data-bind][type=date]{color-scheme:dark}
       <!-- Cargar sala -->
       <div class="row-card">
         <div class="row-head"><b>Capturas del grupo</b></div>
-        <p class="hint">Sube las 3 capturas del lobby para identificar a los equipos y luego 1 o 2 capturas de resultados por cada sala.</p>
+        <p class="hint">El orden de las filas del grupo indica las casillas asignadas. Sube las 3 capturas del lobby y 1 o 2 capturas de resultados por cada sala. La IA cruza casillas y jugadores para identificar a los equipos y sumar sus kills. Puede haber menos de 12 equipos y casillas vacías.</p>
         <p class="hint">Puntos por puesto del 1.º al 12.º — 12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0. Cada kill suma 1 punto.</p>
         <div class="field">
           <label for="ai-lobby">Lobby · 3 capturas</label>
@@ -730,19 +731,23 @@ input[data-bind][type=date]{color-scheme:dark}
         </div>
       </div>
 
+      <details id="ai-lobby-review" class="row-card"><summary>Casillas y jugadores del lobby</summary></details>
       <!-- Resultado + match -->
       <div class="row-card" id="ai-result-card" hidden>
+        <p id="ai-analysis-summary" class="hint" role="status"></p>
+        <details id="ai-room-review"></details>
+        <div class="field"><label for="ai-apply-mode">Al aplicar el cálculo</label><select id="ai-apply-mode"><option value="replace">Reemplazar los resultados del grupo con todas las salas cargadas</option><option value="add">Sumar a los resultados actuales del grupo</option></select></div>
         <div class="row-head">
           <b>Resultado — empareja equipos</b>
           <div class="toolbar">
             <button class="btn ghost sm" id="ai-copy-json">Copiar JSON</button>
-            <button class="btn sm" id="ai-apply">Acumular en grupo →</button>
+            <button class="btn sm" id="ai-apply">Aplicar resultados →</button>
           </div>
         </div>
         <p class="hint" style="margin-bottom:10px">
           Columna <b>Equipo real</b>: selecciona el equipo del grupo que corresponde a cada fila extraída.
-          Los equipos sin emparejar se omiten. Revisa los puntajes, pulsa "Acumular en grupo" y después "Guardar cambios" para publicarlos.
-          Los puntos de posición se calculan automáticamente a partir del puesto de cada sala.
+          Los equipos sin emparejar se omiten. Revisa los puntajes, pulsa "Aplicar resultados" y después "Guardar cambios" para publicarlos.
+          Los puntos de posición se calculan automáticamente a partir del puesto de cada sala. X indica equipo ausente o puesto sin identificar y suma 0 puntos de posición.
         </p>
         <div class="table-wrap">
           <table class="edit-table">
@@ -771,6 +776,7 @@ input[data-bind][type=date]{color-scheme:dark}
 <script src="base/supabase.min.js"></script>
 <script src="base/config.js"></script>
 <script src="base/common.js?v=20261110-5"></script>
-<script src="base/admin.js?v=20261110-5"></script>
+<script src="base/calculator.js?v=20261110-1"></script>
+<script src="base/admin.js?v=20261110-10"></script>
 </body>
 </html>

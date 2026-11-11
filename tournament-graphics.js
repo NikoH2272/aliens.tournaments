@@ -10,6 +10,23 @@ window.TournamentGraphics = (() => {
   const rowsFor = (data, group) => group.kind === 'general'
     ? generalRows(data.results, group.phase)
     : sortRows((group.rows || []).filter(r => (r.team || '').trim()));
+  function matchStats(data, group) {
+    const rows = rowsFor(data, group);
+    const kills = rows.reduce((sum, row) => sum + (Number(row.kills) || 0), 0);
+    const detail = data.tournament?.resultDetails?.[group.id]?.rows || [];
+    const byRoom = new Map();
+    let valid = detail.length > 0;
+    rows.forEach(row => {
+      const entries = detail.filter(entry => entry.rowId === row.id);
+      const detailedKills = entries.flatMap(entry => entry.rooms).reduce((sum, room) => sum + room.kills, 0);
+      if (detailedKills !== (Number(row.kills) || 0)) valid = false;
+    });
+    if (valid) detail.forEach(entry => entry.rooms.forEach(room => {
+      byRoom.set(room.room, (byRoom.get(room.room) || 0) + room.kills);
+    }));
+    return [...[...byRoom].sort((a, b) => a[0] - b[0]).map(([room, kills]) => ({ label: `Sala ${room}`, kills })),
+      { label: 'Total de kills', kills }];
+  }
   const imageHtml = (teams, row, cls = '') => `<img class="${cls}" src="${esc(logoOf(teams, row))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='logo.png'">`;
   const downloadIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>';
   const dateLabel = (date) => date ? new Date(`${date}T12:00:00`).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha por confirmar';
@@ -46,6 +63,7 @@ window.TournamentGraphics = (() => {
             <div><h3>RESULTADOS</h3><p>${esc(data.tournament?.name || 'Aliens Championship')} · ${esc(phase)} · ${esc(active?.title || '')}</p></div>
             <button class="score-download" ${!rows.length ? 'disabled' : ''} aria-label="Descargar resultados de ${esc(active?.title || 'grupo')}">${downloadIcon}<span>Descargar PNG</span></button>
           </header>
+          ${hasScores ? `<div class="score-match-stats">${matchStats(data, active).map(stat => `<div><span>${esc(stat.label)}</span><strong>${stat.kills}</strong></div>`).join('')}</div>` : ''}
           <div class="score-kills-heading"><h4>Los más letales</h4><span>TOP 4 · KILLS POR EQUIPO</span></div>
           ${topKills.length ? `<div class="score-killers">${topKills.map((r, i) => `<div class="score-killer">
             <span class="score-killer-rank">${String(i + 1).padStart(2, '0')}</span>${imageHtml(teams, r)}
@@ -141,17 +159,25 @@ window.TournamentGraphics = (() => {
     const teams = data.teams || [];
     const images = await assets(teams, rows);
     const top = leaders(rows);
+    const stats = scored(rows) ? matchStats(data, group) : [];
+    const statsHeight = stats.length ? 84 : 0;
     const canvas = document.createElement('canvas');
-    canvas.width = 1080; canvas.height = 630 + rows.length * 70;
+    canvas.width = 1080; canvas.height = 630 + statsHeight + rows.length * 70;
     const ctx = canvas.getContext('2d');
     background(ctx, canvas.width, canvas.height, images);
     contain(ctx, images['logo.png'], 48, 48, 90, 90);
     text(ctx, 'RESULTADOS', 165, 132, 100, colors.ink, 770, 'left', 900);
     text(ctx, `${data.tournament?.name || 'Aliens Championship'} · ${group.phase} · ${group.title}`, 50, 184, 28, colors.muted, 970);
-    text(ctx, 'LOS MÁS LETALES', 48, 242, 30);
-    text(ctx, 'TOP 4 / KILLS POR EQUIPO', 1032, 242, 22, colors.muted, undefined, 'right');
+    stats.forEach((stat, index) => {
+      const x = 48 + index * (984 / stats.length);
+      text(ctx, stat.label.toUpperCase(), x, 220, 19, colors.muted, 984 / stats.length - 16);
+      text(ctx, `${stat.kills} KILLS`, x, 258, 32, colors.ink, 984 / stats.length - 16);
+    });
+    text(ctx, 'LOS MÁS LETALES', 48, 242 + statsHeight, 30);
+    text(ctx, 'TOP 4 / KILLS POR EQUIPO', 1032, 242 + statsHeight, 22, colors.muted, undefined, 'right');
     top.forEach((r, i) => {
       const x = 48 + i * 250;
+      ctx.save(); ctx.translate(0, statsHeight);
       ctx.fillStyle = colors.panel; ctx.fillRect(x, 264, 234, 192);
       text(ctx, `0${i + 1}`, x + 12, 291, 22, colors.muted);
       contain(ctx, images[logoOf(teams, r)] || images['logo.png'], x + 12, 301, 115, 105);
@@ -159,13 +185,14 @@ window.TournamentGraphics = (() => {
       text(ctx, 'KILLS', x + 218, 385, 22, colors.muted, undefined, 'right');
       text(ctx, r.team, x + 12, 434, 25, colors.ink, 210);
       ctx.fillStyle = colors.cyan; ctx.fillRect(x, 453, 234, 3);
+      ctx.restore();
     });
-    if (!top.length) text(ctx, 'El top de kills estará disponible al registrar eliminaciones.', 48, 350, 30, colors.muted, 970);
+    if (!top.length) text(ctx, 'El top de kills estará disponible al registrar eliminaciones.', 48, 350 + statsHeight, 30, colors.muted, 970);
     const columns = [80, 156, 706, 806, 910, 1008];
-    ['POS.', 'EQUIPO', 'P. POS.', 'KILLS', 'SANC.', 'TOTAL'].forEach((label, i) => text(ctx, label, columns[i], 503, 22, colors.muted, undefined, i < 2 ? 'left' : 'right'));
+    ['POS.', 'EQUIPO', 'P. POS.', 'KILLS', 'SANC.', 'TOTAL'].forEach((label, i) => text(ctx, label, columns[i], 503 + statsHeight, 22, colors.muted, undefined, i < 2 ? 'left' : 'right'));
     const hasScores = scored(rows);
     rows.forEach((r, i) => {
-      const y = 526 + i * 70;
+      const y = 526 + statsHeight + i * 70;
       const first = i === 0 && hasScores;
       const ink = first ? colors.bg : colors.ink;
       ctx.fillStyle = first ? colors.ink : i % 2 ? '#101722' : '#141e2b';
