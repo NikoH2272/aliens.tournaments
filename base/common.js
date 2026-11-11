@@ -97,6 +97,13 @@ const PYROCORE = (() => {
     });
   };
 
+  const POSITION_POINTS = [12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0];
+  const placementPoints = (position) => {
+    if (!Number.isInteger(position) || position < 1 || position > POSITION_POINTS.length) {
+      throw new Error("El puesto debe ser un número del 1 al 12");
+    }
+    return POSITION_POINTS[position - 1];
+  };
   const total = (r) => (Number(r.kills) || 0) + (Number(r.placement) || 0) - (Number(r.penalty) || 0);
   const sortRows = (rows) =>
     [...rows].sort((a, b) => total(b) - total(a) || (b.placement || 0) - (a.placement || 0) || (b.kills || 0) - (a.kills || 0));
@@ -191,5 +198,5 @@ const PYROCORE = (() => {
     };
   };
 
-  return { DEFAULT_RULES, getRules, normalizePhase, normalizeTournamentData, sb, must, fetchFromSupabase, ICONS, esc, safeUrl, safeImg, loadData, total, sortRows, hasTeam, generalRows, groupTag, PHASES, STATES, localTimes, teamLogo };
+  return { POSITION_POINTS, placementPoints, DEFAULT_RULES, getRules, normalizePhase, normalizeTournamentData, sb, must, fetchFromSupabase, ICONS, esc, safeUrl, safeImg, loadData, total, sortRows, hasTeam, generalRows, groupTag, PHASES, STATES, localTimes, teamLogo };
 })();

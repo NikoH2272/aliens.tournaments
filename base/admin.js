@@ -1068,7 +1068,7 @@
               ...captures,
               { type: "text", text: `Destino: ${targetGroup.phase} · ${targetGroup.title}. Equipos registrados: ${JSON.stringify(groupTeams)}.
 Cruza los resultados con el lobby y usa exactamente el nombre registrado cuando puedas identificar el equipo. Si no puedes identificarlo, conserva el nombre que se ve para revisión manual. Extrae solo datos de esta sala, no cifras del lobby ni acumulados de otras salas. No inventes puntos ni confundas el puesto con puntos de posición.
-Devuelve un array JSON con una fila por equipo y los campos team (texto), kills, placement y penalty (enteros no negativos). Si los puntos de posición no se ven, deja placement en 0 para revisión manual. Si no hay sanciones visibles, penalty es 0.` },
+Devuelve un array JSON con una fila por equipo y los campos team (texto), position (puesto final de esta sala, entero del 1 al 12), kills y penalty (enteros no negativos). Extrae el puesto de clasificación, no los puntos. El sistema convierte automáticamente el puesto en puntos según esta tabla: 1=12, 2=9, 3=8, 4=7, 5=6, 6=5, 7=4, 8=3, 9=2, 10=1, 11=0, 12=0. Cada kill vale 1 punto. Si no puedes leer el puesto, devuelve position=null. Si no hay sanciones visibles, penalty es 0.` },
             ] }],
           }),
         });
@@ -1085,11 +1085,15 @@ Devuelve un array JSON con una fila por equipo y los campos team (texto), kills,
         if (!match) throw new Error(`Sala ${i + 1}: no se encontraron resultados en la respuesta.`);
         const rows = JSON.parse(match[0]);
         if (!Array.isArray(rows) || !rows.length || rows.some(row => typeof row?.team !== "string" || !row.team.trim() ||
-          !scoreFields.every(field => Number.isSafeInteger(row[field]) && row[field] >= 0))) {
+          !["kills", "penalty"].every(field => Number.isSafeInteger(row[field]) && row[field] >= 0))) {
           throw new Error(`Sala ${i + 1}: la respuesta no contiene puntajes válidos.`);
+        }
+        if (rows.some(row => !Number.isInteger(row.position) || row.position < 1 || row.position > 12)) {
+          throw new Error(`Sala ${i + 1}: no se pudo leer un puesto válido del 1 al 12. Revisa las capturas y vuelve a calcular.`);
         }
         const seen = new Set();
         for (const row of rows) {
+          row.placement = PYROCORE.placementPoints(row.position);
           const key = row.team.trim().toLowerCase();
           if (seen.has(key)) throw new Error(`Sala ${i + 1}: hay un equipo duplicado. Revisa las capturas.`);
           seen.add(key);

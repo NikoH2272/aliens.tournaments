@@ -718,6 +718,7 @@ input[data-bind][type=date]{color-scheme:dark}
       <div class="row-card">
         <div class="row-head"><b>Capturas del grupo</b></div>
         <p class="hint">Sube las 3 capturas del lobby para identificar a los equipos y luego 1 o 2 capturas de resultados por cada sala.</p>
+        <p class="hint">Puntos por puesto del 1.º al 12.º — 12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0. Cada kill suma 1 punto.</p>
         <div class="field">
           <label for="ai-lobby">Lobby · 3 capturas</label>
           <input type="file" id="ai-lobby" accept="image/*" multiple>
@@ -741,7 +742,7 @@ input[data-bind][type=date]{color-scheme:dark}
         <p class="hint" style="margin-bottom:10px">
           Columna <b>Equipo real</b>: selecciona el equipo del grupo que corresponde a cada fila extraída.
           Los equipos sin emparejar se omiten. Revisa los puntajes, pulsa "Acumular en grupo" y después "Guardar cambios" para publicarlos.
-          Si las capturas solo muestran el puesto, completa manualmente los puntos de posición.
+          Los puntos de posición se calculan automáticamente a partir del puesto de cada sala.
         </p>
         <div class="table-wrap">
           <table class="edit-table">
@@ -769,7 +770,7 @@ input[data-bind][type=date]{color-scheme:dark}
 <!-- ── Scripts ─────────────────────────────────────────────── -->
 <script src="base/supabase.min.js"></script>
 <script src="base/config.js"></script>
-<script src="base/common.js?v=20261110-3"></script>
-<script src="base/admin.js?v=20261110-4"></script>
+<script src="base/common.js?v=20261110-5"></script>
+<script src="base/admin.js?v=20261110-5"></script>
 </body>
 </html>
