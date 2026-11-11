@@ -686,7 +686,7 @@ input[data-bind][type=date]{color-scheme:dark}
       <!-- API Key -->
       <div class="row-card">
         <div class="row-head"><b>API Key Anthropic</b></div>
-        <p class="hint" style="margin-bottom:12px">La clave se guarda en este navegador. Selecciona el modelo para leer las capturas.</p>
+        <p class="hint" style="margin-bottom:12px">La clave se guarda en este navegador.</p>
         <div style="display:flex;gap:10px;align-items:flex-end">
           <div class="field" style="margin:0;flex:1">
             <label>Clave API (sk-ant-…)</label>
@@ -694,7 +694,7 @@ input[data-bind][type=date]{color-scheme:dark}
           </div>
           <button class="btn ghost sm" id="ai-save-key" style="margin-bottom:14px">Guardar</button>
         </div>
-        <div class="field"><label for="ai-model">Lectura de capturas</label><select id="ai-model"><option value="claude-sonnet-5-5">Sonnet 5.5 · Mayor precisión</option><option value="claude-haiku-4-5">Haiku 4.5 · Menor costo</option></select></div>
+        <p class="hint">Modelo de lectura · Claude Haiku 4.5</p>
         <p id="ai-key-status" class="hint" style="margin-top:6px"></p>
       </div>
 
@@ -777,6 +777,6 @@ input[data-bind][type=date]{color-scheme:dark}
 <script src="base/config.js"></script>
 <script src="base/common.js?v=20261110-5"></script>
 <script src="base/calculator.js?v=20261110-1"></script>
-<script src="base/admin.js?v=20261110-10"></script>
+<script src="base/admin.js?v=20261110-11"></script>
 </body>
 </html>

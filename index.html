@@ -20,8 +20,8 @@
   </a>
   <nav class="hdr-nav" id="hdrNav" aria-label="Navegación principal">
     <a href="#cronograma">Cronograma</a>
-    <a href="#equipos">Equipos</a>
     <a href="#resultados">Resultados</a>
+    <a href="#equipos">Equipos</a>
     <a href="#reglas">Reglas</a>
     <a href="https://chat.whatsapp.com/Ha1p9XC7Zzu48mUIuieKzb" target="_blank" data-dyn="whatsapp">Comunidad</a>
   </nav>
@@ -101,6 +101,21 @@
   </div>
 </section>
 
+<!-- ── PREMIOS ── -->
+<section class="section prizes-section" id="premios">
+  <h2 class="sec-title">Premios</h2>
+  <div class="prizes-grid" id="prizesGrid"></div>
+</section>
+
+<!-- ── RESULTADOS ── -->
+<section class="section results-section" id="resultados">
+  <h2 class="results-title">Resultados</h2>
+  <div class="res-tabs" id="resTabs"></div>
+  <div class="res-body" id="resBody">
+    <div class="res-loading">Cargando resultados…</div>
+  </div>
+</section>
+
 <!-- ── EQUIPOS ── -->
 <section class="section teams-section" id="equipos">
   <h2 class="sec-title">Equipos Participantes</h2>
@@ -115,21 +130,6 @@
   </div>
   <p class="teams-empty" id="teamsEmpty" style="display:none">Sin equipos registrados aún.</p>
   <p class="teams-no-results" id="teamsNoResults" style="display:none">No se encontraron equipos.</p>
-</section>
-
-<!-- ── PREMIOS ── -->
-<section class="section prizes-section" id="premios">
-  <h2 class="sec-title">Premios</h2>
-  <div class="prizes-grid" id="prizesGrid"></div>
-</section>
-
-<!-- ── RESULTADOS ── -->
-<section class="section results-section" id="resultados">
-  <h2 class="results-title">Resultados</h2>
-  <div class="res-tabs" id="resTabs"></div>
-  <div class="res-body" id="resBody">
-    <div class="res-loading">Cargando resultados…</div>
-  </div>
 </section>
 
 <section class="section rules-section" id="reglas" aria-labelledby="rulesTitle">
@@ -205,7 +205,7 @@
 <script src="base/supabase.min.js"></script>
 <script src="base/config.js"></script>
 <script src="base/common.js?v=20261110-5"></script>
-<script src="tournament-graphics.js?v=20261110-4"></script>
+<script src="tournament-graphics.js?v=20261110-5"></script>
 <script>
 function renderTournamentRules(tournament = {}) {
   const { esc, getRules } = PYROCORE;

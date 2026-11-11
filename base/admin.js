@@ -1013,7 +1013,6 @@
   });
   $("#ai-lobby").addEventListener("change", resetAiPreview);
   $("#ai-room-files").addEventListener("change", resetAiPreview);
-  $("#ai-model").addEventListener("change", resetAiPreview);
 
   document.querySelector("#menu button[data-p='ai']")?.addEventListener("click", () => {
     populateAiSelectors();
@@ -1045,8 +1044,7 @@
     resetAiPreview();
     const requestVersion = aiRequestVersion;
     const targetGroup = data.results[gi];
-    const model = $("#ai-model").value;
-    $("#ai-model").disabled = true;
+    const model = "claude-haiku-4-5";
 
     const btn = $("#ai-process");
     aiProcessing = true;
@@ -1184,7 +1182,6 @@ Incluye solo los bloques que aparecen, aunque sean menos de 12. No inventes ause
       toast("Error IA: " + err.message, true);
     } finally {
       aiProcessing = false;
-      $("#ai-model").disabled = false;
       btn.disabled = !$("#ai-group").value;
     }
   });

@@ -137,7 +137,7 @@ window.TournamentGraphics = (() => {
       ctx.drawImage(images['alien-bg.png'], 0, 0, 1080, 590); ctx.restore();
     }
     ctx.fillStyle = colors.cyan;
-    ctx.beginPath(); ctx.moveTo(950, 0); ctx.lineTo(1080, 0); ctx.lineTo(1080, 550); ctx.lineTo(1040, 490); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(width - 130, 0); ctx.lineTo(width, 0); ctx.lineTo(width, 550); ctx.lineTo(width - 40, 490); ctx.closePath(); ctx.fill();
     ctx.fillRect(48, height - 86, width - 96, 2);
     text(ctx, 'ALIENS TOURNAMENTS', 48, height - 38, 24, colors.ink);
     text(ctx, 'FREE FIRE / LATAM', width - 48, height - 38, 22, colors.muted, undefined, 'right');
@@ -152,10 +152,76 @@ window.TournamentGraphics = (() => {
   }
   const slug = value => String(value || 'torneo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+  async function downloadGeneralResults(data, group, rows) {
+    const teams = data.teams || [];
+    const images = await assets(teams, rows);
+    const pageSize = 72;
+    const pageCount = Math.ceil(rows.length / pageSize);
+    const top = leaders(rows);
+    const hasScores = scored(rows);
+    for (let page = 0; page < pageCount; page++) {
+      const pageRows = rows.slice(page * pageSize, (page + 1) * pageSize);
+      const columnCount = pageRows.length > 36 ? 3 : 2;
+      const rowsPerColumn = Math.ceil(pageRows.length / columnCount);
+      const columnWidth = 860;
+      const columnGap = 28;
+      const tableY = 390;
+      const rowHeight = 48;
+      const canvas = document.createElement('canvas');
+      canvas.width = 96 + columnCount * columnWidth + (columnCount - 1) * columnGap;
+      canvas.height = tableY + 48 + rowsPerColumn * rowHeight + 110;
+      const ctx = canvas.getContext('2d');
+      background(ctx, canvas.width, canvas.height, images);
+      contain(ctx, images['logo.png'], 48, 36, 86, 86);
+      text(ctx, 'TABLA GENERAL', 160, 114, 88, colors.ink, canvas.width - 360, 'left', 900);
+      text(ctx, `${data.tournament?.name || 'Aliens Championship'} · ${group.phase}`, 50, 165, 28, colors.muted, canvas.width - 96);
+      text(ctx, `${rows.length} EQUIPOS${pageCount > 1 ? ` · PÁGINA ${page + 1}/${pageCount}` : ''}`, canvas.width - 48, 108, 24, colors.muted, 300, 'right');
+      const topWidth = (canvas.width - 96 - 48) / 4;
+      top.forEach((row, index) => {
+        const x = 48 + index * (topWidth + 16);
+        ctx.fillStyle = colors.panel;
+        ctx.fillRect(x, 205, topWidth, 140);
+        contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 16, 216, 90, 90);
+        text(ctx, row.team, x + 124, 245, 28, colors.ink, topWidth - 144);
+        text(ctx, `${Number(row.kills) || 0} KILLS`, x + 124, 303, 44, colors.ink, topWidth - 144, 'left', 900);
+        ctx.fillStyle = colors.cyan;
+        ctx.fillRect(x, 342, topWidth, 3);
+      });
+      if (!top.length) text(ctx, 'RESULTADOS PENDIENTES', 48, 280, 36, colors.muted);
+      const numericColumns = [610, 684, 756, 838];
+      for (let column = 0; column < columnCount; column++) {
+        const x = 48 + column * (columnWidth + columnGap);
+        ctx.fillStyle = '#1b2737';
+        ctx.fillRect(x, tableY, columnWidth, 40);
+        text(ctx, 'POS.', x + 12, tableY + 27, 18, colors.muted);
+        text(ctx, 'EQUIPO', x + 106, tableY + 27, 18, colors.muted);
+        ['P. POS.', 'KILLS', 'SANC.', 'TOTAL'].forEach((label, index) =>
+          text(ctx, label, x + numericColumns[index], tableY + 27, 18, colors.muted, undefined, 'right'));
+        const entries = pageRows.slice(column * rowsPerColumn, (column + 1) * rowsPerColumn);
+        entries.forEach((row, index) => {
+          const rank = page * pageSize + column * rowsPerColumn + index + 1;
+          const y = tableY + 48 + index * rowHeight;
+          const first = rank === 1 && hasScores;
+          const ink = first ? colors.bg : colors.ink;
+          ctx.fillStyle = first ? colors.ink : index % 2 ? '#101722' : '#141e2b';
+          ctx.fillRect(x, y, columnWidth, rowHeight - 1);
+          text(ctx, String(rank).padStart(2, '0'), x + 12, y + 32, 25, ink);
+          contain(ctx, images[logoOf(teams, row)] || images['logo.png'], x + 58, y + 5, 36, 36);
+          text(ctx, row.team, x + 106, y + 32, 25, ink, 410);
+          [Number(row.placement) || 0, Number(row.kills) || 0, Number(row.penalty) || 0, total(row)].forEach((value, index) =>
+            text(ctx, value, x + numericColumns[index], y + 32, index === 3 ? 30 : 25, ink, 68, 'right', index === 3 ? 900 : 600));
+        });
+      }
+      const suffix = pageCount > 1 ? `-${page + 1}de${pageCount}` : '';
+      await save(canvas, `tabla-general-${slug(group.phase)}${suffix}.png`);
+    }
+  }
+
   async function downloadResults(data, group) {
     if (!group) return;
     const rows = rowsFor(data, group);
     if (!rows.length) return;
+    if (group.kind === 'general' && rows.length > 12) return downloadGeneralResults(data, group, rows);
     const teams = data.teams || [];
     const images = await assets(teams, rows);
     const top = leaders(rows);
