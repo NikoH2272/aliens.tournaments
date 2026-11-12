@@ -1222,6 +1222,51 @@ Incluye solo los bloques que aparecen, aunque sean menos de 12. No inventes ause
 
   // ── end IA Calculator ──────────────────────────────────────
 
+  async function downloadLogosForPhase(phase) {
+    if (!window.JSZip) return toast("JSZip no disponible", true);
+    const btn = document.getElementById("dl-logos-phase");
+    if (btn) { btn.disabled = true; btn.textContent = "Descargando…"; }
+    try {
+      const zip = new window.JSZip();
+      const groups = data.results.filter(g => g.phase === phase && g.kind !== "general");
+      if (!groups.length) { toast("No hay grupos en esta fase", true); return; }
+
+      const seen = new Set();
+      const fetches = [];
+      groups.forEach(group => {
+        const gFolder = zip.folder(group.title.replace(/[^a-z0-9áéíóúñ]/gi, "_"));
+        group.rows.filter(r => (r.team || "").trim()).forEach(row => {
+          const team = data.teams.find(t => t.name.trim().toLowerCase() === row.team.trim().toLowerCase());
+          if (!team?.slug) return;
+          const key = `${group.title}/${team.slug}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+          const url = `imagenes/equipos/${team.slug}.png`;
+          fetches.push(
+            fetch(url).then(r => r.ok ? r.blob() : null)
+              .then(blob => { if (blob) gFolder.file(`${team.slug}.png`, blob); })
+              .catch(() => {})
+          );
+        });
+      });
+
+      await Promise.all(fetches);
+      const content = await zip.generateAsync({ type: "blob" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = `logos_${phase.replace(/\s+/g, "_")}.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      toast(`Logos de ${phase} descargados ✓`);
+    } catch (err) {
+      toast("Error: " + err.message, true);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "Logos fase"; }
+    }
+  }
+
+  document.getElementById("dl-logos-phase")?.addEventListener("click", () => downloadLogosForPhase(curPhase));
+
   $("#add-prize").addEventListener("click", () => {
     data.prizes.push({ place: `${data.prizes.length + 1}° Lugar`, amount: "" });
     renderPrizes(); markDirty();
