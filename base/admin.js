@@ -1044,7 +1044,7 @@
     resetAiPreview();
     const requestVersion = aiRequestVersion;
     const targetGroup = data.results[gi];
-    const model = "claude-haiku-4-5";
+    const model = "claude-haiku-5-5";
 
     const btn = $("#ai-process");
     aiProcessing = true;
