@@ -393,16 +393,25 @@ document.getElementById('download-rules').addEventListener('click', async (event
         return g ? g.rows.filter(r => (r.team || "").trim()) : [];
       }
 
+      function isPassed(m) {
+        if ((m.status || "") === "finalizado") return true;
+        if (!m.date || !m.time) return false;
+        const matchDt = new Date(`${m.date}T${m.time}:00`);
+        return Date.now() - matchDt.getTime() > 4 * 60 * 60 * 1000; // 4 h de gracia
+      }
+
       function renderSched(q) {
         const filtered = q
           ? schedule.filter(m => {
               const rows = getGroupTeams(m.phase, m.group);
               return rows.some(r => r.team.toLowerCase().includes(q));
             })
-          : schedule;
+          : schedule.filter(m => !isPassed(m));
 
         if (!filtered.length) {
-          bodyEl.innerHTML = `<p class="res-empty">No se encontraron grupos para ese equipo.</p>`;
+          bodyEl.innerHTML = q
+            ? `<p class="res-empty">No se encontraron grupos para ese equipo.</p>`
+            : `<p class="res-empty">No hay partidas próximas por el momento.</p>`;
           return;
         }
 
