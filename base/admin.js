@@ -418,14 +418,19 @@
         </tr>`).join("");
     }
     const sortPhase = $("#sort-phase");
+    let sortPhaseVal = "";
     if (sortPhase) {
+      const prevVal = sortPhase.value;
       const phases = phasesOf(data.results);
       sortPhase.innerHTML = phases.map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("") || `<option value="">Sin fases</option>`;
+      if (phases.includes(prevVal)) sortPhase.value = prevVal;
+      sortPhaseVal = sortPhase.value;
     }
     // render fixed-teams checklist
     const fixedList = $("#sort-fixed-list");
     if (fixedList) {
-      const active = data.teams.filter((t) => t.active && t.name.trim());
+      const qualified = getQualifiedForPhase(sortPhaseVal);
+      const active = qualified ?? data.teams.filter((t) => t.active && t.name.trim());
       // preserve previously checked state
       const prevChecked = new Set([...fixedList.querySelectorAll("input:checked")].map((el) => el.value));
       fixedList.innerHTML = active.length
@@ -434,7 +439,7 @@
               <input type="checkbox" class="sort-fixed-cb" value="${esc(t.name)}" ${prevChecked.has(t.name) ? "checked" : ""} style="width:auto;margin:0">
               ${esc(t.name)}
             </label>`).join("")
-        : `<span class="hint">Sin equipos activos.</span>`;
+        : `<span class="hint">${qualified ? "Sin clasificados en la fase anterior." : "Sin equipos activos."}</span>`;
       // wire counter update
       fixedList.querySelectorAll(".sort-fixed-cb").forEach((cb) => {
         cb.addEventListener("change", updateSortPreview);
@@ -443,9 +448,24 @@
     updateSortPreview();
   }
 
+  function getQualifiedForPhase(destPhase) {
+    if (!data) return null;
+    const phaseIdx = PHASES.indexOf(destPhase);
+    if (phaseIdx <= 0) return null;
+    const prevPhase = PHASES[phaseIdx - 1];
+    const gen = data.results.find(g => g.phase === prevPhase && g.kind === "general");
+    if (!gen || !Number(gen.qualify)) return null;
+    const q = Number(gen.qualify);
+    const rows = generalRows(data.results, prevPhase);
+    const names = new Set(rows.slice(0, q).map(r => r.name.trim().toLowerCase()));
+    return data.teams.filter(t => t.active && t.name.trim() && names.has(t.name.trim().toLowerCase()));
+  }
+
   function updateSortPreview() {
     const fixed = [...document.querySelectorAll(".sort-fixed-cb:checked")].map((el) => el.value);
-    const active = data?.teams.filter((t) => t.active && t.name.trim()) || [];
+    const sortPhaseVal = $("#sort-phase")?.value || "";
+    const qualified = getQualifiedForPhase(sortPhaseVal);
+    const active = qualified ?? (data?.teams.filter((t) => t.active && t.name.trim()) || []);
     const toSort = active.filter((t) => !fixed.includes(t.name));
     const countEl = $("#sort-fixed-count");
     if (countEl) countEl.textContent = fixed.length ? `${fixed.length} fijos seleccionados` : "";
@@ -645,6 +665,19 @@
       return;
     }
     if (!data) return;
+    if (el.id === "sort-phase") {
+      const fixedList = $("#sort-fixed-list");
+      if (!fixedList) return;
+      const qualified2 = getQualifiedForPhase(el.value);
+      const pool = qualified2 ?? data.teams.filter((t) => t.active && t.name.trim());
+      const prevChecked2 = new Set([...fixedList.querySelectorAll("input:checked")].map((x) => x.value));
+      fixedList.innerHTML = pool.length
+        ? pool.map((t) => `<label style="display:flex;align-items:center;gap:5px;background:var(--bg-hi);border:1px solid var(--border);border-radius:4px;padding:4px 9px;cursor:pointer;font-size:.78rem;user-select:none"><input type="checkbox" class="sort-fixed-cb" value="${esc(t.name)}" ${prevChecked2.has(t.name) ? "checked" : ""} style="width:auto;margin:0">${esc(t.name)}</label>`).join("")
+        : `<span class="hint">${qualified2 ? "Sin clasificados en la fase anterior." : "Sin equipos activos."}</span>`;
+      fixedList.querySelectorAll(".sort-fixed-cb").forEach((cb) => { cb.addEventListener("change", updateSortPreview); });
+      updateSortPreview();
+      return;
+    }
     if (el.dataset.bind && (el.tagName === "SELECT" || el.type === "radio")) { set(el.dataset.bind, el.value); markDirty(); }
     if (el.dataset.bind?.endsWith(".qualify")) renderResults();
     if (el.dataset.teamactive !== undefined) {
@@ -708,10 +741,11 @@
       return;
     }
     if (t.id === "do-sort") {
-      const all = data.teams.filter((x) => x.active && x.name.trim());
-      if (!all.length) return toast("No hay equipos activos registrados", true);
       const phase = $("#sort-phase")?.value;
       if (!phase) return toast("Selecciona una fase primero", true);
+      const qualified = getQualifiedForPhase(phase);
+      const all = qualified ?? data.teams.filter((x) => x.active && x.name.trim());
+      if (!all.length) return toast(qualified ? "No hay equipos clasificados desde la fase anterior" : "No hay equipos activos registrados", true);
       const size = Number($("#sort-size")?.value) || 12;
       const fixedNames = new Set([...document.querySelectorAll(".sort-fixed-cb:checked")].map((el) => el.value));
       const fixed = all.filter((x) => fixedNames.has(x.name));
